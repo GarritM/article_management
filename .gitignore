@@ -1,2 +1,4 @@
+# ide-config
 /.idea
+# debug
 /cmake-build-debug
