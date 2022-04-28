@@ -8,32 +8,35 @@
 #include <stdio.h>
 #include <string.h>
 
-
-
-
-struct article_type *database_creation(file_information *fileInformation){
-    article_type *article;
-    article = (article_type *) malloc(sizeof(article_type));
+struct article_type *create_article_array(){
+    article_type* article = (article_type *) malloc(sizeof(article_type));
     if(article == NULL){
         printf("database creation is unsuccessful due to a memory error");
-    }else{
-        strcpy(article -> name, "<empty");
-        article->price = 0;
-        article->amount = 0;
-        article->price_total = 0;
-        article->price_c = none;
-        article->refreshing = 0;
-        article->filled = 0;
-        fileInformation->size = 1;
     }
     return article;
 }
-struct article_type *database_extension(article_type *article, int extension_size, file_information *fileInformation){
-    article = (article_type*)realloc(article, (extension_size + fileInformation->size)*sizeof(article_type));
-    if(article == NULL){
+struct database_information_type *create_database_information(){
+    database_information_type* database_information = (database_information_type *) malloc(sizeof(database_information_type));
+    if(database_information == NULL){
+        printf("database creation is unsuccessful due to a memory error");
+    }
+    else {
+        database_information->size = 0;
+        database_information->sorting_mode = 0;
+    }
+    return database_information;
+}
+struct database_type database_creation(){
+    struct database_type database;
+    database.file_information = create_database_information();
+    database.article_array = create_article_array();
+    database.article_array->filled = 0;
+    return database;
+}
+void extend_article_array(database_type *database, int extension_size){
+    database->article_array = (article_type *) realloc(database->article_array, (extension_size + database->file_information->size) * sizeof(article_type));
+    if(database->article_array == NULL){
         printf("memory allocation error\n");
     }
-    fileInformation->size += extension_size;
-    return article;
 }
-void file_creation(){}
+

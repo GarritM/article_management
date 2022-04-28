@@ -16,11 +16,18 @@ typedef struct article_type {
     time_t creation_date, last_edited;
 } article_type;
 
-typedef struct file_information{
+typedef struct database_information_type{
     int size;
     int sorting_mode;
-}file_information;
+}database_information_type;
 
-struct article_type *database_creation();
-struct article_type *database_extension();
+typedef struct database_type{
+    database_information_type *file_information;
+    article_type *article_array;
+}database_type;
+
+struct article_type *create_article_array();
+struct database_type database_creation();
+struct database_type database_extension();
+void extend_article_array();
 #endif //UNTITLED3_FILE_FUNCTIONS_H
