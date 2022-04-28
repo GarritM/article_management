@@ -14,22 +14,38 @@ void print_article(struct article_type article){
     printf("%-20s%-5i %8.2f  %-9s  %10.2f\n",
            article.name,article.amount,article.price,price_c_names[article.price_c],article.price_total);
 }
-void print_complete_db(article_type *article, file_information fileInformation){
+void print_most_expensive_article(struct database_type *database){
+    print_article(database->article_array[get_index_expensive_article(database)]);
+}
+void print_complete_db(struct database_type database){
     double running_total = 0.0;
     print_table_header();
-    for(int i=0; i < fileInformation.size; i++){
-        if(article[i].filled == 1){
+    for(int i=0; i < database.file_information->size; i++){
+        if(database.article_array[i].filled == 1){
             printf("%i\t",i);
-            print_article(article[i]);
-            running_total += article[i].price_total;
+            print_article(database.article_array[i]);
+            running_total += database.article_array[i].price_total;
         }
     }
     printf("\t\t\t\t\t\tTotal:%11.2f\n", running_total);
 }
 void print_table_header(){
-    printf("\nNo.\tarticle\t\t    amount   price  category\t    total\n");
+    printf("\nNo.\tarticle_type\t\t    amount   price  category\t    total\n");
 }
-int user_menu() {
+
+int get_index_expensive_article(struct database_type *database) {
+    int article_index = -1;
+    double max_value = 0;
+    for (int i = 0; i < database->file_information->size; i++) {
+        if (database->article_array[i].price > max_value) {
+            max_value = database->article_array[i].price;
+            article_index = i;
+        }
+        return article_index;
+    }
+}
+
+int user_menu(){
     int option_number = 0; //TODO: option_number sollte vielleicht durch navigator ersetzt werden, wahrscheinlich bessere darstellungsmöglichkeiten, etwa wenn teile des screens gelöscht werden sollen
     while (option_number == 0) {
         printf("Choose one of the following options:\n"
@@ -45,9 +61,9 @@ int user_menu() {
             while (option_number == 0) {
                 printf("Choose one of the following options:\n"
                        "[1] print the whole database\n"
-                       "[2] print most expensive article\n"
-                       "[3] print cheapest article\n"
-                       "[4] search and print an article by name\n"
+                       "[2] print most expensive article_type\n"
+                       "[3] print cheapest article_type\n"
+                       "[4] search and print an article_type by name\n"
                        "[0] back\n");
                 scanf("%i", &option_number);
 
@@ -57,15 +73,15 @@ int user_menu() {
                 if (option_number == 1) {
                     return 11;
                 }
-                /*print most expensive article*/
+                /*print most expensive article_type*/
                 else if (option_number == 2) {
                     return 12;
                 }
-                /*print cheapest article*/
+                /*print cheapest article_type*/
                 else if (option_number == 3) {
                     return 13;
                 }
-                /*search an article with binary search and print it*/
+                /*search an article_type with binary search and print it*/
                 else if (option_number == 4) {
                     return 14;
                 }
