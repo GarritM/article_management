@@ -20,9 +20,13 @@ int main() {
         } else if(chosen_option == 12){
             print_most_expensive_article(database);
         }else if (chosen_option == 21) {
-            new_entry(&database);
+            new_entry(database);
         } else if (chosen_option == 31) {
             database = database_creation();
+        }else if (chosen_option == 32) {
+            save_database(database);
+        }else if (chosen_option == 33) {
+            load_database(&database);
         }
     }/*-1 is the return-value of "user_menu()" to close the programm*/
     if (database.article_array != NULL) {

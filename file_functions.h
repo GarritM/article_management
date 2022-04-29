@@ -15,12 +15,10 @@ typedef struct article_type {
     int amount, refreshing, filled;
     time_t creation_date, last_edited;
 } article_type;
-
 typedef struct database_information_type{
     int size;
     int sorting_mode;
 }database_information_type;
-
 typedef struct database_type{
     database_information_type *file_information;
     article_type *article_array;
@@ -30,4 +28,8 @@ struct article_type *create_article_array();
 struct database_type database_creation();
 struct database_type database_extension();
 void extend_article_array();
+
+void load_database();
+void save_database();
+
 #endif //UNTITLED3_FILE_FUNCTIONS_H
