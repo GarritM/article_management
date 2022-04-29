@@ -62,17 +62,19 @@ int get_index_cheapest_article(struct database_type *database) {
     return article_index;
 }
 void get_article_in_range(database_type *database, int left_boundary, int right_boundary){
-    quicksort_name(database,left_boundary,right_boundary);
+    quicksort_name(database,left_boundary,right_boundary); //TODO: comparison with database.file_information.sorting_mode
     char searched_article[100];
     printf("Type in the name of the article you are searching:\n");
     scanf("%s", &searched_article);
     binary_search_article_in_range(database, searched_article, left_boundary, right_boundary);
-}//be aware that this output needs the db sorted by name!
+}//TODO: be aware that this output needs the db sorted by name, which is ugly af
+
+
 void binary_search_article_in_range(struct database_type database, char* searched_article, int left_boundary, int right_boundary){
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     /* WARNING: "database" has to be sorted by name, before this function can be used properly!*/
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-    // TODO: Implementation of quicksort ONLY at the beginning of the function
+    // TODO: would be cooler if this function returned the index of the searched article
     int left_end = left_boundary;
     int right_end = right_boundary;
     int fix_point = (right_end-left_end)/2 + left_end;
@@ -85,6 +87,7 @@ void binary_search_article_in_range(struct database_type database, char* searche
         binary_search_article_in_range(database, searched_article, left_end, fix_point);
     }else if(compare_result == 0){
         print_table_header();
+        printf("%i\t", fix_point);
         print_article(database.article_array[fix_point]);
     }else{
         printf("Something went wrong, dont bother with this article.\n");
@@ -107,9 +110,9 @@ int user_menu(){
             while (option_number == 0) {
                 printf("Choose one of the following options:\n"
                        "[1] print the whole database\n"
-                       "[2] print most expensive article_type\n"
-                       "[3] print cheapest article_type\n"
-                       "[4] search and print an article_type by name\n"
+                       "[2] print most expensive article\n"
+                       "[3] print cheapest article\n"
+                       "[4] search and print an article by name\n"
                        "[0] back\n");
                 scanf("%i", &option_number);
 

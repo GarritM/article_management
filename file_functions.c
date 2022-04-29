@@ -39,6 +39,12 @@ void extend_article_array(struct database_type *database, int extension_size){
         printf("memory allocation error\n");
     }
 }
+void reduce_article_array(struct database_type *database, int reduction_size){
+    database->article_array = (article_type *) realloc(database->article_array, (database->file_information->size - reduction_size) * sizeof(article_type));
+    if(database->article_array == NULL){
+        printf("memory allocation error\n");
+    }
+}
 
 void save_database(struct database_type database){
     FILE *db_save;

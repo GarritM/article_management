@@ -30,6 +30,7 @@ struct article_type *create_article_array();
 struct database_type database_creation();
 struct database_type database_extension();
 void extend_article_array();
+void reduce_article_array();
 
 void load_database();
 void save_database();

@@ -25,6 +25,10 @@ int main() {
             get_article_in_range(&database, 0, database.file_information->size-1);
         }else if (chosen_option == 21) {
             new_entry(&database);
+        }else if (chosen_option == 22) {
+            change_article(&database);
+        }else if (chosen_option == 23) {
+            delete_article(&database);
         }else if (chosen_option == 241) {
             turn_around(&database);
         }else if (chosen_option == 242) {

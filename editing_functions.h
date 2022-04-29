@@ -7,6 +7,8 @@
 
 #include "file_functions.h"
 
+void change_article();
+void delete_article();
 void entry_article();
 void entry_article_amount();
 void entry_article_filled();
