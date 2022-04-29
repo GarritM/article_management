@@ -7,7 +7,12 @@
 #include "editing_functions.h"
 #include "file_functions.h"
 
-
+void change_article(database_type *database){
+    int change_index;
+    printf("Type in the index of the entry you want to change:\n");
+    scanf("%i", &change_index);
+    entry_article(*database, change_index);
+}
 void entry_article(struct database_type *database, int article_index) {
     entry_article_filled(-1, &database->article_array[article_index]); //if process is interrupted it shows database.article_array.filling = -1
     entry_article_name(&database->article_array[article_index]);
@@ -17,6 +22,17 @@ void entry_article(struct database_type *database, int article_index) {
     entry_article_price_category(&database->article_array[article_index]);
     entry_article_filled(1, &database->article_array[article_index]);
     printf("entry successful\n");
+}
+void delete_article(database_type *database){
+    int delete_index;
+    printf("Type in the index of the entry you want to delte:\n");
+    scanf("%i", &delete_index);
+    for(int i=delete_index;i<database->file_information->size;i++){
+        database->article_array[i]=database->article_array[i+1];
+    }
+    reduce_article_array(database, 1);
+    database->file_information->size -= 1;
+    printf("deletion successful\n");
 }
 
 void entry_article_amount(struct article_type *article) {
