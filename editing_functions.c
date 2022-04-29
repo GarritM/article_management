@@ -7,6 +7,7 @@
 #include "editing_functions.h"
 #include "file_functions.h"
 
+
 void entry_article(struct database_type *database, int article_index) {
     entry_article_filled(-1, &database->article_array[article_index]); //if process is interrupted it shows database.article_array.filling = -1
     entry_article_name(&database->article_array[article_index]);
@@ -110,3 +111,72 @@ void no_space_for_strings(char *some_random_string) {
         }
         strcpy(some_random_string, some_modified_string);
     }
+void quicksort_price(database_type *database, int left_boundary, int right_boundary) {
+    int fix_point = (right_boundary + left_boundary) / 2, i = left_boundary, j = right_boundary;
+    double compare_price = database->article_array[fix_point].price;
+    struct article_type dummy;
+    do {
+        while (database->article_array[i].price < compare_price) {
+            i++;
+        }
+        while (database->article_array[j].price > compare_price) {
+            j--;
+        }
+        if (i <= j) {
+            article_type dummy;
+            dummy = database->article_array[i];
+            database->article_array[i] = database->article_array[j];
+            database->article_array[j] = dummy;
+            i++;
+            j--;
+        }
+    } while (i <= j);
+    if (left_boundary < j) {
+        quicksort_price(database, left_boundary, j);
+    }
+    if (right_boundary > i) {
+        quicksort_price(database, i, right_boundary);
+    }
+}
+void quicksort_name(struct database_type *database, int left_boundary, int right_boundary){
+    int fix_point = (right_boundary+left_boundary)/2, i = left_boundary, j = right_boundary;
+    char* compare_name = database->article_array[fix_point].name;
+    struct article_type dummy;
+    do{
+        while(strcmp(database->article_array[i].name, compare_name)<0){
+            i++;
+        }
+        while(strcmp(database->article_array[j].name, compare_name)>0){
+            j--;
+        }
+        if(i<=j){
+            dummy = database->article_array[i];
+            database->article_array[i] = database->article_array[j];
+            database->article_array[j] = dummy;
+            i++;
+            j--;
+        }
+    }while(i<=j);
+    if(left_boundary<j){
+        quicksort_name(database, left_boundary, j);
+    }
+    if(right_boundary>i){
+        quicksort_name(database, i, right_boundary);
+    }
+}
+void swap(database_type *database, int article_index_a, int article_index_b){
+    article_type dummy;
+    dummy = database->article_array[article_index_a];
+    database->article_array[article_index_a] = database->article_array[article_index_b];
+    database->article_array[article_index_b] = dummy;
+}
+void turn_around(database_type *database) {
+    int i, j;
+    struct article_type dummy;
+    for(i=0, j= database->file_information->size-1; i<j;i++,j--){
+        dummy = database->article_array[i];
+        database->article_array[i] = database->article_array[j];
+        database->article_array[j] = dummy;
+    }
+}
+

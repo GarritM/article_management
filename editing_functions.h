@@ -16,5 +16,9 @@ void entry_article_price_category();
 void entry_article_price_total();
 void new_entry();
 void no_space_for_strings();
+void quicksort_price();
+void quicksort_name();
+void swap();
+void turn_around();
 
 #endif //UNTITLED3_EDITING_FUNCTIONS_H

@@ -7,6 +7,7 @@
 
 #include "user_interface.h"
 #include "file_functions.h"
+#include "editing_functions.h"
 
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
 
@@ -15,7 +16,12 @@ void print_article(struct article_type article){
            article.name,article.amount,article.price,price_c_names[article.price_c],article.price_total);
 }
 void print_most_expensive_article(struct database_type *database){
-    print_article(database->article_array[get_index_expensive_article(database)]);
+    print_table_header();
+    print_article(database->article_array[get_index_most_expensive_article(database)]);
+}
+void print_cheapest_article(struct database_type *database){
+    print_table_header();
+    print_article(database->article_array[get_index_cheapest_article(database)]);
 }
 void print_complete_db(struct database_type database){
     double running_total = 0.0;
@@ -30,18 +36,58 @@ void print_complete_db(struct database_type database){
     printf("\t\t\t\t\t\tTotal:%11.2f\n", running_total);
 }
 void print_table_header(){
-    printf("\nNo.\tarticle_type\t\t    amount   price  category\t    total\n");
+    printf("\nNo.\tarticle_type\t    amount   price  category\t    total\n");
 }
 
-int get_index_expensive_article(struct database_type *database) {
-    int article_index = -1;
-    double max_value = 0;
-    for (int i = 0; i < database->file_information->size; i++) {
+int get_index_most_expensive_article(struct database_type *database) {
+    int article_index = 0;
+    double max_value = database->article_array[0].price;
+    for (int i = 1; i < database->file_information->size; i++) {
         if (database->article_array[i].price > max_value) {
             max_value = database->article_array[i].price;
             article_index = i;
         }
-        return article_index;
+    }
+    return article_index;
+}
+int get_index_cheapest_article(struct database_type *database) {
+    int article_index = 0;
+    double min_value = database->article_array[0].price;
+    for (int i = 1; i < database->file_information->size; i++) {
+        if (database->article_array[i].price < min_value) {
+            min_value = database->article_array[i].price;
+            article_index = i;
+        }
+    }
+    return article_index;
+}
+void get_article_in_range(database_type *database, int left_boundary, int right_boundary){
+    quicksort_name(database,left_boundary,right_boundary);
+    char searched_article[100];
+    printf("Type in the name of the article you are searching:\n");
+    scanf("%s", &searched_article);
+    binary_search_article_in_range(database, searched_article, left_boundary, right_boundary);
+}//be aware that this output needs the db sorted by name!
+void binary_search_article_in_range(struct database_type database, char* searched_article, int left_boundary, int right_boundary){
+    /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    /* WARNING: "database" has to be sorted by name, before this function can be used properly!*/
+    /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    // TODO: Implementation of quicksort ONLY at the beginning of the function
+    int left_end = left_boundary;
+    int right_end = right_boundary;
+    int fix_point = (right_end-left_end)/2 + left_end;
+    int compare_result = strcmp(searched_article, database.article_array[fix_point].name);
+    if(right_end == left_end && compare_result !=0){
+        printf("There is no article \"%s\"\n",searched_article);
+    }else if(compare_result > 0){
+        binary_search_article_in_range(database, searched_article, fix_point + 1, right_end);
+    }else if(compare_result < 0){
+        binary_search_article_in_range(database, searched_article, left_end, fix_point);
+    }else if(compare_result == 0){
+        print_table_header();
+        print_article(database.article_array[fix_point]);
+    }else{
+        printf("Something went wrong, dont bother with this article.\n");
     }
 }
 
@@ -206,7 +252,7 @@ int user_menu(){
         else if (option_number == 0) {
             return -1;
         }
-        /*ivalid option*/
+        /*invalid option*/
         else {
             printf("There is no option %i.\n", option_number);
             option_number = 0;
