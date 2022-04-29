@@ -17,7 +17,9 @@ typedef struct article_type {
 } article_type;
 typedef struct database_information_type{
     int size;
-    int sorting_mode;
+    enum sorting_mode {
+        unsorted, price_high_to_low, price_low_to_high //TODO: complete this list, check if/how every function changes the sorting-state
+    }sorting_mode;
 }database_information_type;
 typedef struct database_type{
     database_information_type *file_information;
