@@ -14,7 +14,6 @@ int main() {
 
     while (chosen_option != -1) {
         chosen_option = user_menu();
-        //TODO: alle funktionen müssen hinzugefügt werden
         if (chosen_option == 11) {
             print_complete_db(database);
         }else if(chosen_option == 12){

@@ -55,7 +55,6 @@ void save_database(struct database_type database){
     }
         /*tatsächliches schreiben in datei*/
     else{
-        //TODO: Implement FIlE-Header with sorting state, elements
         fprintf(db_save,"%i;%i\n",database.file_information->size,database.file_information->sorting_mode);
         for (int i = 0; i < database.file_information->size; i++) {
                 fprintf(db_save, "%s;%i;%.2f;%.2f;%d;%i\n",

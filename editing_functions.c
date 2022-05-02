@@ -6,6 +6,7 @@
 #include <string.h>
 #include "editing_functions.h"
 #include "file_functions.h"
+#include "user_interface.h"
 
 void change_article(database_type *database){
     int change_index;
@@ -14,18 +15,20 @@ void change_article(database_type *database){
     entry_article(*database, change_index);
 }
 void entry_article(struct database_type *database, int article_index) {
-    entry_article_filled(-1, &database->article_array[article_index]); //if process is interrupted it shows database.article_array.filling = -1
-    entry_article_name(&database->article_array[article_index]);
-    entry_article_price(&database->article_array[article_index]);
-    entry_article_amount(&database->article_array[article_index]);
-    entry_article_price_total(&database->article_array[article_index]);
-    entry_article_price_category(&database->article_array[article_index]);
-    entry_article_filled(1, &database->article_array[article_index]);
-    printf("entry successful\n");
+    entry_article_filled(-1,&database->article_array[article_index]); //if process is interrupted it shows database.article_array.filling = -1
+    if (entry_article_name(database, article_index) == 0) {
+        entry_article_price(&database->article_array[article_index]);
+        entry_article_amount(&database->article_array[article_index]);
+        entry_article_price_total(&database->article_array[article_index]);
+        entry_article_price_category(&database->article_array[article_index]);
+        entry_article_time(&database->article_array[article_index]);
+        entry_article_filled(1, &database->article_array[article_index]);
+        printf("entry successful\n");
+    }
 }
 void delete_article(database_type *database){
     int delete_index;
-    printf("Type in the index of the entry you want to delte:\n");
+    printf("Type in the index of the entry you want to delete:\n");
     scanf("%i", &delete_index);
     for(int i=delete_index;i<database->file_information->size;i++){
         database->article_array[i]=database->article_array[i+1];
@@ -46,7 +49,7 @@ void entry_article_filled(int mode_of_filling, struct article_type *article) {
     article->filled = mode_of_filling;
 }
 
-void entry_article_name(struct article_type *article) {
+int entry_article_name(database_type *database, int article_index) {
     char name[100], buffer[100000] = "", dump;
     printf("name of the article:\n");
     //empty buffer, or else bad things might happen
@@ -54,22 +57,33 @@ void entry_article_name(struct article_type *article) {
         dump = getchar();
     } while (dump != '\n' && dump != EOF);
     //the real scanning; scans negation of subset [\n]
-    if (scanf("%[^\n]",
-              &buffer)) { //TODO: Stackoverflow said this is the worst possible way to implement this, learn gets(); vulnerable to buffer overflow-shit
+    if (scanf("%[^\n]", buffer)) { //TODO: Stackoverflow said this is the worst possible way to implement this, learn gets(); vulnerable to buffer overflow-shit
         buffer[99] = "\0";
         strcpy(name, buffer);
     } else {
-        strcpy(name, "<unnamed>");
+        strcpy(name, "corrupted_article_name");
         printf("error: name couldn't be assigned to article_type\n");
+        return -1;
     }
     //empty buffer again just for safety
     do {
         dump = getchar();
     } while (dump != '\n' && dump != EOF);
-    no_space_for_strings(
-            name); //TODO: probably here, should be checked if a identical name already exists in this database. If so check if price is identical two... then just add the amount, if not, expand name by an identifier,
-    strcpy(article->name, name);
+    no_space_for_strings(name);
+    int found_result = binary_search_article_in_range(database, name, 0, database->file_information->size);
+    if(found_result == -1) {
+        strcpy(database->article_array[article_index].name, name);
+        return 0;
+    }else if(found_result >= 0){
+        printf("The name you entered already exists:\n");
+        print_table_header();
+        printf("%i\t",found_result);
+        print_article(database->article_array[found_result]);
+        printf("\n");
+        return -1;
 
+    }
+    return -1;
 }
 
 void entry_article_price(struct article_type *article) {
@@ -100,6 +114,11 @@ void entry_article_price_category(struct article_type *article) {
 
 void entry_article_price_total(struct article_type *article) {
     article->price_total = article->price * article->amount;
+}
+
+void entry_article_time(struct article_type *article){
+    time(&article->creation_date);
+    time(&article->last_edited);
 }
 
 void new_entry(struct database_type *database) {
