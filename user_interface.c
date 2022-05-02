@@ -18,11 +18,11 @@ void print_article(struct article_type article){
 void print_most_expensive_article(struct database_type *database){
     print_table_header();
     print_article(database->article_array[get_index_most_expensive_article(database)]);
-} //TODO:solve with binary search
+} //TODO: solve with binary search
 void print_cheapest_article(struct database_type *database){
     print_table_header();
     print_article(database->article_array[get_index_cheapest_article(database)]);
-} //TODO:solve with binary search
+} //TODO: solve with binary search
 void print_complete_db(struct database_type database){
     double running_total = 0.0;
     print_table_header();
@@ -33,7 +33,7 @@ void print_complete_db(struct database_type database){
             running_total += database.article_array[i].price_total;
         }
     }
-    printf("\t\t\t\t\t\tTotal:%11.2f\n", running_total);
+    printf("\t\t\t\t\tTotal:%11.2f\n", running_total);
 }
 void print_table_header(){
     printf("\nNo.\tarticle\t    amount   price  category\t    total\n");
@@ -105,7 +105,7 @@ int binary_search_article_in_range(struct database_type database, char* searched
 }
 
 int user_menu(struct database_type *database){
-    int option_number = 0; //TODO: option_number sollte vielleicht durch navigator ersetzt werden, wahrscheinlich bessere darstellungsmöglichkeiten, etwa wenn teile des screens gelöscht werden sollen
+    int option_number = 0;
     while (option_number == 0) {
         printf("Choose one of the following options:\n"
                "[1] output\n"

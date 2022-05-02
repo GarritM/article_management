@@ -18,7 +18,7 @@ typedef struct article_type {
 typedef struct database_information_type{
     int size;
     enum sorting_mode {
-        unsorted, price_high_to_low, price_low_to_high, name_a_z, name_z_a
+        unsorted, price_low_to_high, price_high_to_low,  name_a_z, name_z_a
     }sorting_mode;
 }database_information_type;
 typedef struct database_type{
