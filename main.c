@@ -13,7 +13,7 @@ int main() {
     database_type database;
 
     while (chosen_option != -1) {
-        chosen_option = user_menu();
+        chosen_option = user_menu(database);
         if (chosen_option == 11) {
             print_complete_db(database);
         }else if(chosen_option == 12){
@@ -21,7 +21,7 @@ int main() {
         }else if(chosen_option == 13){
             print_cheapest_article(database);
         }else if(chosen_option == 14){
-            get_article_in_range(&database, 0, database.file_information->size-1);
+            get_article_by_name(&database);
         }else if (chosen_option == 21) {
             new_entry(&database);
         }else if (chosen_option == 22) {

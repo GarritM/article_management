@@ -13,6 +13,7 @@ void change_article(database_type *database){
     printf("Type in the index of the entry you want to change:\n");
     scanf("%i", &change_index);
     entry_article(*database, change_index);
+    database->file_information->sorting_mode = unsorted;
 }
 void entry_article(struct database_type *database, int article_index) {
     entry_article_filled(-1,&database->article_array[article_index]); //if process is interrupted it shows database.article_array.filling = -1
@@ -44,11 +45,9 @@ void entry_article_amount(struct article_type *article) {
     scanf("%d", &amount);
     article->amount = amount;
 }
-
 void entry_article_filled(int mode_of_filling, struct article_type *article) {
     article->filled = mode_of_filling;
 }
-
 int entry_article_name(database_type *database, int article_index) {
     char name[100], buffer[100000] = "", dump;
     printf("name of the article:\n");
@@ -85,14 +84,12 @@ int entry_article_name(database_type *database, int article_index) {
     }
     return -1;
 }
-
 void entry_article_price(struct article_type *article) {
     double price;
     printf("price:\n");
     scanf("%lf", &price);
     article->price = price;
 }
-
 void entry_article_price_category(struct article_type *article) {
     if (article->filled == 0) {
         article->price_c = none;
@@ -111,30 +108,24 @@ void entry_article_price_category(struct article_type *article) {
         printf("error: unable to assign price category properly\n category of the price is assigned with \"none\"\n");
     }
 }
-
 void entry_article_price_total(struct article_type *article) {
     article->price_total = article->price * article->amount;
 }
-
 void entry_article_time(struct article_type *article){
     time(&article->creation_date);
     time(&article->last_edited);
 }
 
 void new_entry(struct database_type *database) {
-    if(database) {
-        if (database->file_information->size == 0) { // für den ersten eintrags
-            entry_article(database, database->file_information->size);
-            database->file_information->size = 1;
-        } else {
-            extend_article_array(database, 1);
-            entry_article(database,database->file_information->size);
-            database->file_information->size +=1;
-        }
+    if (database->file_information->size == 0) { // für den ersten eintrags
+        entry_article(database, database->file_information->size);
+        database->file_information->size = 1;
+    } else {
+        extend_article_array(database, 1);
+        entry_article(database, database->file_information->size);
+        database->file_information->size += 1;
     }
-    else{
-        printf("There is no existing database.\n");
-    }
+    database->file_information->sorting_mode = unsorted;
 }
 
 void no_space_for_strings(char *some_random_string) {
@@ -146,7 +137,7 @@ void no_space_for_strings(char *some_random_string) {
         }
         strcpy(some_random_string, some_modified_string);
     }
-void quicksort_price(database_type *database, int left_boundary, int right_boundary) {
+void quicksort_price_algorithm(database_type *database, int left_boundary, int right_boundary) {
     int fix_point = (right_boundary + left_boundary) / 2, i = left_boundary, j = right_boundary;
     double compare_price = database->article_array[fix_point].price;
     struct article_type dummy;
@@ -158,7 +149,6 @@ void quicksort_price(database_type *database, int left_boundary, int right_bound
             j--;
         }
         if (i <= j) {
-            article_type dummy;
             dummy = database->article_array[i];
             database->article_array[i] = database->article_array[j];
             database->article_array[j] = dummy;
@@ -173,7 +163,17 @@ void quicksort_price(database_type *database, int left_boundary, int right_bound
         quicksort_price(database, i, right_boundary);
     }
 }
-void quicksort_name(struct database_type *database, int left_boundary, int right_boundary){
+void quicksort_price(struct database_type *database, int left_boundary, int right_boundary) {
+    if (database->file_information->sorting_mode == price_high_to_low) {
+        turn_around(&database);
+    } else if (database->file_information->sorting_mode == price_low_to_high) {
+        turn_around(&database);
+    } else {
+        quicksort_price_algorithm(database, left_boundary, right_boundary);
+        database->file_information->sorting_mode = price_high_to_low;
+    }
+}
+void quicksort_name_algorithm(struct database_type *database, int left_boundary, int right_boundary){
     int fix_point = (right_boundary+left_boundary)/2, i = left_boundary, j = right_boundary;
     char* compare_name = database->article_array[fix_point].name;
     struct article_type dummy;
@@ -196,7 +196,17 @@ void quicksort_name(struct database_type *database, int left_boundary, int right
         quicksort_name(database, left_boundary, j);
     }
     if(right_boundary>i){
-        quicksort_name(database, i, right_boundary);
+        quicksort_name_algorithm(database, i, right_boundary);
+    }
+}
+void quicksort_name(struct database_type *database, int left_boundary, int right_boundary){
+    if(database->file_information->sorting_mode == name_a_z){
+        turn_around(&database);
+    }else if(database->file_information->sorting_mode == name_z_a){
+        turn_around(&database);
+    }else{
+        quicksort_name_algorithm(database, left_boundary, right_boundary);
+        database->file_information->sorting_mode = name_a_z;
     }
 }
 void swap(database_type *database, int article_index_a, int article_index_b){
@@ -213,5 +223,13 @@ void turn_around(database_type *database) {
         database->article_array[i] = database->article_array[j];
         database->article_array[j] = dummy;
     }
+    if(database->file_information->sorting_mode == name_a_z){
+        database->file_information->sorting_mode = name_z_a;
+    }else if(database->file_information->sorting_mode == name_z_a){
+        database->file_information->sorting_mode = name_a_z;
+    }else if(database->file_information->sorting_mode == price_high_to_low){
+        database->file_information->sorting_mode = price_low_to_high;
+    }else if(database->file_information->sorting_mode == price_low_to_high){
+        database->file_information->sorting_mode = price_high_to_low;
+    }
 }
-
