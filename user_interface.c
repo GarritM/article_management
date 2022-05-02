@@ -66,31 +66,38 @@ void get_article_in_range(database_type *database, int left_boundary, int right_
     char searched_article[100];
     printf("Type in the name of the article you are searching:\n");
     scanf("%s", &searched_article);
-    binary_search_article_in_range(database, searched_article, left_boundary, right_boundary);
+    int found_result = binary_search_article_in_range(database, searched_article, left_boundary, right_boundary);
+    if(found_result >= 0) {
+        print_table_header();
+        printf("%i\t", found_result);
+        print_article(database->article_array[found_result]);
+    }else if(found_result == -1) {
+        printf("There is no article \"%s\"\n", searched_article);
+    }else{
+        printf("Something really bad happened. Maybe restarting the program could help.\n");
+    }
 }//TODO: be aware that this output needs the db sorted by name, which is ugly af
 
 
-void binary_search_article_in_range(struct database_type database, char* searched_article, int left_boundary, int right_boundary){
+int binary_search_article_in_range(struct database_type *database, char* searched_article, int left_boundary, int right_boundary){
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     /* WARNING: "database" has to be sorted by name, before this function can be used properly!*/
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     // TODO: would be cooler if this function returned the index of the searched article
-    int left_end = left_boundary;
-    int right_end = right_boundary;
-    int fix_point = (right_end-left_end)/2 + left_end;
-    int compare_result = strcmp(searched_article, database.article_array[fix_point].name);
-    if(right_end == left_end && compare_result !=0){
-        printf("There is no article \"%s\"\n",searched_article);
+    // TODO: copy search scope in database_search_scope_copy
+    int fix_point = (right_boundary - left_boundary) / 2 + left_boundary;
+    int compare_result = strcmp(searched_article, database->article_array[fix_point].name);
+    if(right_boundary == left_boundary && compare_result != 0){
+        return -1;
     }else if(compare_result > 0){
-        binary_search_article_in_range(database, searched_article, fix_point + 1, right_end);
+        return binary_search_article_in_range(database, searched_article, fix_point + 1, right_boundary);
     }else if(compare_result < 0){
-        binary_search_article_in_range(database, searched_article, left_end, fix_point);
+        return binary_search_article_in_range(database, searched_article, left_boundary, fix_point);
     }else if(compare_result == 0){
-        print_table_header();
-        printf("%i\t", fix_point);
-        print_article(database.article_array[fix_point]);
+        return fix_point;
     }else{
-        printf("Something went wrong, dont bother with this article.\n");
+        printf("Something went very wrong, dont bother with this article.\n");
+        return -1;
     }
 }
 
