@@ -157,20 +157,20 @@ void quicksort_price_algorithm(database_type *database, int left_boundary, int r
         }
     } while (i <= j);
     if (left_boundary < j) {
-        quicksort_price(database, left_boundary, j);
+        quicksort_price_algorithm(database, left_boundary, j);
     }
     if (right_boundary > i) {
-        quicksort_price(database, i, right_boundary);
+        quicksort_price_algorithm(database, i, right_boundary);
     }
 }
 void quicksort_price(struct database_type *database, int left_boundary, int right_boundary) {
-    if (database->file_information->sorting_mode == price_high_to_low) {
-        turn_around(&database);
-    } else if (database->file_information->sorting_mode == price_low_to_high) {
-        turn_around(&database);
+    if (database->file_information->sorting_mode == price_low_to_high) {
+        turn_around(database);
+    } else if (database->file_information->sorting_mode == price_high_to_low) {
+        turn_around(database);
     } else {
         quicksort_price_algorithm(database, left_boundary, right_boundary);
-        database->file_information->sorting_mode = price_high_to_low;
+        database->file_information->sorting_mode = price_low_to_high;
     }
 }
 void quicksort_name_algorithm(struct database_type *database, int left_boundary, int right_boundary){
@@ -193,7 +193,7 @@ void quicksort_name_algorithm(struct database_type *database, int left_boundary,
         }
     }while(i<=j);
     if(left_boundary<j){
-        quicksort_name(database, left_boundary, j);
+        quicksort_name_algorithm(database, left_boundary, j);
     }
     if(right_boundary>i){
         quicksort_name_algorithm(database, i, right_boundary);
@@ -201,9 +201,9 @@ void quicksort_name_algorithm(struct database_type *database, int left_boundary,
 }
 void quicksort_name(struct database_type *database, int left_boundary, int right_boundary){
     if(database->file_information->sorting_mode == name_a_z){
-        turn_around(&database);
+        turn_around(database);
     }else if(database->file_information->sorting_mode == name_z_a){
-        turn_around(&database);
+        turn_around(database);
     }else{
         quicksort_name_algorithm(database, left_boundary, right_boundary);
         database->file_information->sorting_mode = name_a_z;
