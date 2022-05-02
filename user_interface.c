@@ -12,7 +12,7 @@
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
 
 void print_article(struct article_type article){
-    printf("%-20s%-5i %8.2f  %-9s  %10.2f\n",
+    printf("%-12s%-5i %8.2f  %-9s  %10.2f\n",
            article.name,article.amount,article.price,price_c_names[article.price_c],article.price_total);
 }
 void print_most_expensive_article(struct database_type *database){
@@ -61,7 +61,7 @@ int get_index_cheapest_article(struct database_type *database) {
     }
     return article_index;
 }
-void get_article_by_name(struct database_type *database){ //TODO:Debug, program crashes when db wasn't sorted from a-z before.
+void get_article_by_name(struct database_type *database){ //TODO:Debug, program crashes somehow AFTER it showed the searched article when db wasn't sorted from a-z before. Feels like there's a filled buffer somewhere.
     if(database->file_information->sorting_mode != name_a_z){
         quicksort_name(database,0,database->file_information->size);
         printf("Be aware, that the database has been resorted alphabetically.\n");

@@ -6,11 +6,22 @@
 
 
 int main() {
-    //TODO: Programm muss wissen ob File geladen oder nicht
+    database_type database = database_creation();
+    printf("\n***********************\n"
 
-    /*user-interface*/
+           "you opened the program:\n"
+           "\"article_management\"\n"
+
+           "Version: 1.1\n"
+           "by Garrit Morrin\n"
+
+
+           "Welcome!\n"
+
+           "***********************\n\n");
+
     int chosen_option = 0;
-    database_type database;
+
 
     while (chosen_option != -1) {
         chosen_option = user_menu(database);
