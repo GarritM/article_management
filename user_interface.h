@@ -7,7 +7,7 @@
 
 int get_index_most_expensive_article();
 int get_index_cheapest_article();
-void get_article_in_range();
+void get_article_by_name();
 void print_article();
 void print_most_expensive_article();
 void print_cheapest_article();

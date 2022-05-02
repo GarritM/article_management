@@ -18,11 +18,11 @@ void print_article(struct article_type article){
 void print_most_expensive_article(struct database_type *database){
     print_table_header();
     print_article(database->article_array[get_index_most_expensive_article(database)]);
-}
+} //TODO:solve with binary search
 void print_cheapest_article(struct database_type *database){
     print_table_header();
     print_article(database->article_array[get_index_cheapest_article(database)]);
-}
+} //TODO:solve with binary search
 void print_complete_db(struct database_type database){
     double running_total = 0.0;
     print_table_header();
@@ -36,7 +36,7 @@ void print_complete_db(struct database_type database){
     printf("\t\t\t\t\t\tTotal:%11.2f\n", running_total);
 }
 void print_table_header(){
-    printf("\nNo.\tarticle_type\t    amount   price  category\t    total\n");
+    printf("\nNo.\tarticle\t    amount   price  category\t    total\n");
 }
 
 int get_index_most_expensive_article(struct database_type *database) {
@@ -61,12 +61,15 @@ int get_index_cheapest_article(struct database_type *database) {
     }
     return article_index;
 }
-void get_article_in_range(database_type *database, int left_boundary, int right_boundary){
-    quicksort_name(database,left_boundary,right_boundary); //TODO: comparison with database.file_information.sorting_mode
+void get_article_by_name(struct database_type *database){ //TODO:Debug, program crashes when db wasn't sorted from a-z before.
+    if(database->file_information->sorting_mode != name_a_z){
+        quicksort_name(database,0,database->file_information->size);
+        printf("Be aware, that the database has been resorted alphabetically.\n");
+    }
     char searched_article[100];
     printf("Type in the name of the article you are searching:\n");
     scanf("%s", &searched_article);
-    int found_result = binary_search_article_in_range(database, searched_article, left_boundary, right_boundary);
+    int found_result = binary_search_article_in_range(database, searched_article, 0, database->file_information->size);
     if(found_result >= 0) {
         print_table_header();
         printf("%i\t", found_result);
@@ -76,17 +79,17 @@ void get_article_in_range(database_type *database, int left_boundary, int right_
     }else{
         printf("Something really bad happened. Maybe restarting the program could help.\n");
     }
-}//TODO: be aware that this output needs the db sorted by name, which is ugly af
 
-
-int binary_search_article_in_range(struct database_type *database, char* searched_article, int left_boundary, int right_boundary){
+}
+int binary_search_article_in_range(struct database_type database, char* searched_article, int left_boundary, int right_boundary){
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     /* WARNING: "database" has to be sorted by name, before this function can be used properly!*/
     /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-    // TODO: would be cooler if this function returned the index of the searched article
-    // TODO: copy search scope in database_search_scope_copy
+    if(database.file_information->sorting_mode != name_a_z){
+        return -1;
+    }
     int fix_point = (right_boundary - left_boundary) / 2 + left_boundary;
-    int compare_result = strcmp(searched_article, database->article_array[fix_point].name);
+    int compare_result = strcmp(searched_article, database.article_array[fix_point].name);
     if(right_boundary == left_boundary && compare_result != 0){
         return -1;
     }else if(compare_result > 0){
@@ -101,7 +104,7 @@ int binary_search_article_in_range(struct database_type *database, char* searche
     }
 }
 
-int user_menu(){
+int user_menu(struct database_type *database){
     int option_number = 0; //TODO: option_number sollte vielleicht durch navigator ersetzt werden, wahrscheinlich bessere darstellungsmöglichkeiten, etwa wenn teile des screens gelöscht werden sollen
     while (option_number == 0) {
         printf("Choose one of the following options:\n"
@@ -129,15 +132,15 @@ int user_menu(){
                 if (option_number == 1) {
                     return 11;
                 }
-                /*print most expensive article_type*/
+                /*print most expensive article*/
                 else if (option_number == 2) {
                     return 12;
                 }
-                /*print cheapest article_type*/
+                /*print cheapest article*/
                 else if (option_number == 3) {
                     return 13;
                 }
-                /*search an article_type with binary search and print it*/
+                /*search an article with binary search and print it*/
                 else if (option_number == 4) {
                     return 14;
                 }
@@ -184,8 +187,8 @@ int user_menu(){
                     while (option_number == 0) {
                         printf("Choose one of the following options:\n"
                                "[1] turn around the database\n"
-                               "[2] sort the database from lowest to highest price\n"
-                               "[3] sort the database by name (a-z)\n"
+                               "[2] sort the database by price\n"
+                               "[3] sort the database alphabetically\n"
                                "[0] back\n");
                         scanf("%i", &option_number);
 
