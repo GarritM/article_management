@@ -20,6 +20,7 @@ typedef struct database_information_type{
     enum sorting_mode {
         unsorted, price_low_to_high, price_high_to_low,  name_a_z, name_z_a
     }sorting_mode;
+    char file_name[1000];
 }database_information_type;
 typedef struct database_type{
     database_information_type *file_information;
@@ -34,5 +35,6 @@ void reduce_article_array();
 
 void load_database();
 void save_database();
+void file_stat();
 
 #endif //UNTITLED3_FILE_FUNCTIONS_H

@@ -61,7 +61,7 @@ int get_index_cheapest_article(struct database_type *database) {
     }
     return article_index;
 }
-void get_article_by_name(struct database_type *database){ //TODO:Debug, program crashes somehow AFTER it showed the searched article when db wasn't sorted from a-z before. Feels like there's a filled buffer somewhere.
+void get_article_by_name(struct database_type *database){
     if(database->file_information->sorting_mode != name_a_z){
         quicksort_name(database,0,database->file_information->size);
         printf("Be aware, that the database has been resorted alphabetically.\n");
@@ -235,6 +235,7 @@ int user_menu(struct database_type *database){
                 printf("[1] create a new database\n"
                        "[2] save this file\n"
                        "[3] load a file\n"
+                       "[4] show file attributes\n"
                        "[0] back\n");
                 scanf("%i", &option_number);
 
@@ -249,6 +250,10 @@ int user_menu(struct database_type *database){
                 /*load*/
                 else if(option_number == 3){
                     return 33;
+                }
+                /*show file attributes*/
+                else if(option_number == 4){
+                    return 34;
                 }
                 /*back*/
                 else if(option_number == 0){

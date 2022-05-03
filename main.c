@@ -6,7 +6,9 @@
 
 
 int main() {
+
     database_type database = database_creation();
+
     printf("\n***********************\n"
 
            "you opened the program:\n"
@@ -21,7 +23,6 @@ int main() {
            "***********************\n\n");
 
     int chosen_option = 0;
-
 
     while (chosen_option != -1) {
         chosen_option = user_menu(database);
@@ -51,6 +52,8 @@ int main() {
             save_database(database);
         }else if (chosen_option == 33) {
             load_database(&database);
+        }else if (chosen_option == 34) {
+            file_stat("C://Users/garri/CLionProjects/Gittesting/Database.csv");
         }
     }/*-1 is the return-value of "user_menu()" to close the programm*/
     if (database.article_array != NULL) {
