@@ -59,8 +59,6 @@ int main() {
             save_database(database);
         }else if (chosen_option == 33) {
             load_database(&database);
-        }else if (chosen_option == 34) {
-            file_stat("C://Users/garri/CLionProjects/Gittesting/Database.csv");
         }
     }/*-1 is the return-value of "user_menu()" to close the programm*/
     if (database.article_array != NULL) {

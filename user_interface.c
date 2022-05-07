@@ -253,7 +253,6 @@ int user_menu(struct database_type *database){
                 printf("[1] create a new database\n"
                        "[2] save this file\n"
                        "[3] load a file\n"
-                       "[4] show file attributes\n"
                        "[0] back\n");
                 scanf("%i", &option_number);
 
@@ -268,10 +267,6 @@ int user_menu(struct database_type *database){
                 /*load*/
                 else if(option_number == 3){
                     return 33;
-                }
-                /*show file attributes*/
-                else if(option_number == 4){
-                    return 34;
                 }
                 /*back*/
                 else if(option_number == 0){

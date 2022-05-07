@@ -27,7 +27,7 @@ void file_stat(char *filepath) {
             printf("right to write\n");
         }
         printf("%ld Byte\n", attr.st_size);
-        printf("last time accessed: %ld = %s", attr.st_atime, ctime(&attr.st_atime));
+        printf("last time accessed: %s\n", ctime(&attr.st_atime));
     }
 }
 struct article_type *create_article_array(int array_size){
@@ -94,8 +94,8 @@ void save_database(struct database_type database){
                         database.article_array[i].price_total,
                         database.article_array[i].price_c,
                         database.article_array[i].filled,
-                        database.article_array[i].last_edited,
-                        database.article_array[i].creation_date);
+                        database.article_array[i].creation_date,
+                        database.article_array[i].last_edited);
 
         }
     }
@@ -106,6 +106,7 @@ void load_database(struct database_type *database){
     char line_buffer[500], file_name[1000];
     printf("Path of file to open:\n");
     scanf("%s", &database->file_information->file_name);
+    file_stat(database->file_information->file_name);
     if((db_read=fopen(database->file_information->file_name, "r")) == NULL){
             printf("loading unsuccessful\n");
         }else{
