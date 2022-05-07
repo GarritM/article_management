@@ -33,7 +33,7 @@ void file_stat(char *filepath) {
 struct article_type *create_article_array(int array_size){
     article_type* article = (article_type *) malloc(array_size * sizeof(article_type));
     if(article == NULL){
-        printf("database creation is unsuccessful due to a memory error");
+        printf("database creation is unsuccessful due to a memory error\n");
     }
     return article;
 }

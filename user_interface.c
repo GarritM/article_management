@@ -12,14 +12,16 @@
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
 
 void print_article(struct article_type article){
-    struct tm time = *gmtime(&article.last_edited);
-    printf("%-12s%-5i %8.2f  %-9s  %10.2f\t %02d.%02d.%02d %d:%d:%d \n",
+    struct tm time_edit = *gmtime(&article.last_edited),
+            time_created = *gmtime(&article.creation_date);
+    printf("%-12s%-5i %8.2f  %-9s  %10.2f\t %02d.%02d.%02d %d:%d:%d\t%02d.%02d.%02d %d:%d:%d\n",
            article.name,
            article.amount,
            article.price,
            price_c_names[article.price_c],
            article.price_total,
-           time.tm_mday,time.tm_mon + 1,time.tm_year +1900, time.tm_hour, time.tm_min, time.tm_sec);
+           time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900, time_edit.tm_hour, time_edit.tm_min, time_edit.tm_sec,
+           time_created.tm_mday,time_created.tm_mon +1, time_created.tm_year+1900,time_created.tm_hour,time_created.tm_min,time_created.tm_sec);
 }
 void print_most_expensive_article(struct database_type *database){
     print_table_header();
@@ -42,7 +44,7 @@ void print_complete_db(struct database_type database){
     printf("\t\t\t\t\tTotal:%11.2f\n", running_total);
 }
 void print_table_header(){
-    printf("\nNo.\tarticle\t    amount   price  category\t    total\t edited at\n");
+    printf("\nNo.\tarticle\t    amount   price  category\t    total\t last time edited\tcreated\n");
 }
 
 int get_index_most_expensive_article(struct database_type *database) {

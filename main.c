@@ -10,16 +10,19 @@ int main() {
     database_type database = database_creation();
 
     printf("\n***********************\n"
-
            "you opened the program:\n"
            "\"article_management\"\n"
-
+           "\n"
            "Version: 1.1\n"
            "by Garrit Morrin\n"
-
-
+           "\n"
+           "\n"
            "Welcome!\n"
-
+           "\n"
+           "There is a testing file\n"
+           "u can load from in this\n"
+           " project-folder called:\n"
+           " \"Database.csv\"\n"
            "***********************\n\n");
 
     int chosen_option = 0;

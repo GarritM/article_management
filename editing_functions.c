@@ -16,12 +16,11 @@ void change_article(database_type *database){
     database->file_information->sorting_mode = unsorted;
 }
 void entry_article(struct database_type *database, int article_index) {
-    if(database->article_array->filled == 0){                             //if process is interrupted it shows database.article_array.filling = -1, while keeping new, and edited distinguished
+    if(database->article_array[article_index].filled == 0){                             //if process is interrupted it shows database.article_array.filling = -1, while keeping new, and edited distinguished
         entry_article_filled(-1,&database->article_array[article_index]);
-    }else if(database->article_array->filled == 1){
+    }else if(database->article_array[article_index].filled == 1){
         entry_article_filled(-2,&database->article_array[article_index]);
     }
-    entry_article_filled(-1,&database->article_array[article_index]); //if process is interrupted it shows database.article_array.filling = -1
     if (entry_article_name(database, article_index) == 0) {
         entry_article_price(&database->article_array[article_index]);
         entry_article_amount(&database->article_array[article_index]);
