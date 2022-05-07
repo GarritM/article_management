@@ -5,6 +5,7 @@
 #ifndef UNTITLED3_USER_INTERFACE_H
 #define UNTITLED3_USER_INTERFACE_H
 
+int ask_for_answer();
 int get_index_most_expensive_article();
 int get_index_cheapest_article();
 void get_article_by_name();
@@ -15,5 +16,6 @@ int binary_search_article_in_range();
 
 void print_table_header();
 void print_complete_db();
+void printing_configuration();
 int user_menu();
 #endif //UNTITLED3_USER_INTERFACE_H

@@ -35,6 +35,8 @@ int main() {
             print_cheapest_article(database);
         }else if(chosen_option == 14){
             get_article_by_name(&database);
+        }else if(chosen_option == 19) {
+            printing_configuration(&database);
         }else if (chosen_option == 21) {
             new_entry(&database);
         }else if (chosen_option == 22) {

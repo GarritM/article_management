@@ -25,6 +25,16 @@ typedef struct database_information_type{
         tm_create_recent_old, tm_create_old_recent,
     }sorting_mode;
     char file_name[1000];
+    unsigned short print_conf; //for configuring parameter of article output
+    // 0000 0000 0000 0001 = name
+    // 0000 0000 0000 0010 = price
+    // 0000 0000 0000 0100 = price_total
+    // 0000 0000 0000 1000 = price_c
+    // 0000 0000 0001 0000 = amount
+    // 0000 0000 0010 0000 = refreshing
+    // 0000 0000 0100 0000 = filling
+    // 0000 0000 1000 0000 = creation
+    // 0000 0001 0000 0000 = last edited
 }database_information_type;
 typedef struct database_type{
     database_information_type *file_information;

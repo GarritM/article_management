@@ -54,6 +54,8 @@ struct database_type database_creation(){
     strcpy(database.file_information->file_name, "<empty>");
     database.article_array = create_article_array(1);
     database.article_array->filled = 0;
+    database.file_information->print_conf = 511;
+
     return database;
 }
 
@@ -76,7 +78,6 @@ void save_database(struct database_type database){
         printf("Where do u want to save this file? Type in a path:\n");
         scanf("%s",database.file_information->file_name); //TODO: filename, should be assembled so that the file is saved in the same place always
                                                           //      this makes it possible to display the files from which u can load
-                                                          //TODO: more general, saving and loading should work not only on this computer
     }
     db_save = fopen(database.file_information->file_name, "wb");
     /*fehlerprüfung*/

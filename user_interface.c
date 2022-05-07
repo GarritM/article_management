@@ -11,41 +11,97 @@
 #include "editing_functions.h"
 
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
+int ask_for_answer(){
 
-void print_article(struct article_type article){
+    char answer = '0';
+    while(answer != 'y'&& answer !='n'){
+        scanf("%c",&answer);
+    }
+    if(answer == 'y'){
+        return 1;
+    }else if(answer == 'n'){
+        return 0;
+    }
+}
+void printing_configuration(database_type *database){
+    database->file_information->print_conf = 0;
+    printf("Do you want to output...\n");
+    printf("...the name? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*1 | database->file_information->print_conf;
+    printf("...the price? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*2 | database->file_information->print_conf;
+    printf("...the total price? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*4 | database->file_information->print_conf;
+    printf("...the category of the price e? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*8 | database->file_information->print_conf;
+    printf("...the amount? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*16 | database->file_information->print_conf;
+    printf("...the refreshing? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*32 | database->file_information->print_conf;
+    printf("...the filling? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*64 | database->file_information->print_conf;
+    printf("...the time of creation? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*128 | database->file_information->print_conf;
+    printf("...the last time of editing? (y/n)\n");
+    database->file_information->print_conf = ask_for_answer()*256 | database->file_information->print_conf;
+    }
+void print_article(struct article_type article, unsigned int p_conf) {
     struct tm time_edit = *gmtime(&article.last_edited),
             time_created = *gmtime(&article.creation_date);
-    printf("%-12s%-5i %8.2f  %-9s  %10.2f\t %02d.%02d.%02d %d:%d:%d\t%02d.%02d.%02d %d:%d:%d\n",
-           article.name,
-           article.amount,
-           article.price,
-           price_c_names[article.price_c],
-           article.price_total,
-           time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900, time_edit.tm_hour, time_edit.tm_min, time_edit.tm_sec,
-           time_created.tm_mday,time_created.tm_mon +1, time_created.tm_year+1900,time_created.tm_hour,time_created.tm_min,time_created.tm_sec);
+    if (p_conf & 1) {
+        printf("%-12s", article.name);
+    }if (p_conf & 16) {
+        printf("%-5i", article.amount);
+    }if (p_conf & 2) {
+        printf("%8.2f", article.price);
+    }if (p_conf & 8){
+        printf("%-9s", price_c_names[article.price_c]);
+    }if (p_conf & 4){
+        printf("%10.2f\t", article.price_total);
+    }if (p_conf & 128){
+        printf("%02d.%02d.%02d %d:%d:%d\t",time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900, time_edit.tm_hour, time_edit.tm_min, time_edit.tm_sec);
+    }if (p_conf & 256) {
+        printf("%02d.%02d.%02d %d:%d:%d\n", time_created.tm_mday, time_created.tm_mon + 1, time_created.tm_year + 1900,
+               time_created.tm_hour, time_created.tm_min, time_created.tm_sec);
+    }
 }
 void print_most_expensive_article(struct database_type *database){
     print_table_header();
-    print_article(database->article_array[get_index_most_expensive_article(database)]);
+    print_article(database->article_array[get_index_most_expensive_article(database)], database->file_information->print_conf);
 } //TODO: solve with binary search
 void print_cheapest_article(struct database_type *database){
     print_table_header();
-    print_article(database->article_array[get_index_cheapest_article(database)]);
+    print_article(database->article_array[get_index_cheapest_article(database)], database->file_information->print_conf);
 } //TODO: solve with binary search
 void print_complete_db(struct database_type database){
     double running_total = 0.0;
-    print_table_header();
+    print_table_header(database.file_information->print_conf);
     for(int i=0; i < database.file_information->size; i++){
         if(database.article_array[i].filled == 1){
             printf("%i\t",i);
-            print_article(database.article_array[i]);
+            print_article(database.article_array[i],database.file_information->print_conf);
             running_total += database.article_array[i].price_total;
         }
     }
     printf("\t\t\t\t\tTotal:%11.2f\n", running_total);
 }
-void print_table_header(){
-    printf("\nNo.\tarticle\t    amount   price  category\t    total\t last time edited\tcreated\n");
+void print_table_header(unsigned int p_conf){ //TODO: formatting
+    printf("\nNo.\t");
+    if (p_conf & 1) {
+        printf("article\t");
+    }if (p_conf & 16) {
+        printf("amount\t");
+    }if (p_conf & 2) {
+        printf("price\t");
+    }if (p_conf & 8){
+        printf("category\t");
+    }if (p_conf & 4){
+        printf("total\t");
+    }if (p_conf & 128){
+        printf("last time edited\t");
+    }if (p_conf & 256) {
+        printf("created\n");
+    }
 }
 
 int get_index_most_expensive_article(struct database_type *database) {
@@ -80,9 +136,9 @@ void get_article_by_name(struct database_type *database){
     scanf("%s", &searched_article);
     int found_result = binary_search_article_in_range(database, searched_article, 0, database->file_information->size-1);
     if(found_result >= 0) {
-        print_table_header();
+        print_table_header(database->file_information->print_conf);
         printf("%i\t", found_result);
-        print_article(database->article_array[found_result]);
+        print_article(database->article_array[found_result],database->file_information->print_conf);
     }else if(found_result == -1) {
         printf("There is no article \"%s\"\n", searched_article);
     }else{
@@ -129,6 +185,7 @@ int user_menu(struct database_type *database){
                        "[2] print most expensive article\n"
                        "[3] print cheapest article\n"
                        "[4] search and print one article by name\n"
+                       "[9] configure printed parameters\n"
                        "[0] back\n");
                 scanf("%i", &option_number);
 
@@ -149,6 +206,10 @@ int user_menu(struct database_type *database){
                 /*search an article with binary search and print it*/
                 else if (option_number == 4) {
                     return 14;
+                }
+                /*configure parameter-printing*/
+                else if (option_number == 9) {
+                    return 19;
                 }
                 /*back*/
                 else if(option_number == 0){
