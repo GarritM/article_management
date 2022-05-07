@@ -13,7 +13,7 @@ int main() {
            "you opened the program:\n"
            "\"article_management\"\n"
            "\n"
-           "Version: 1.1\n"
+           "Version: 1.2\n"
            "by Garrit Morrin\n"
            "\n"
            "\n"
