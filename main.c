@@ -46,6 +46,10 @@ int main() {
             quicksort_price(&database,0,database.file_information->size-1);
         }else if (chosen_option == 243) {
             quicksort_name(&database,0,database.file_information->size-1);
+        }else if (chosen_option == 244) {
+            quicksort_time_ledited(&database,0,database.file_information->size-1);
+        }else if (chosen_option == 245) {
+            quicksort_time_created(&database,0,database.file_information->size-1);
         }else if (chosen_option == 31) {
             database = database_creation();
         }else if (chosen_option == 32) {

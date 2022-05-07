@@ -2,3 +2,5 @@
 /.idea
 # debug
 /cmake-build-debug
+# well...
+/.gitignore

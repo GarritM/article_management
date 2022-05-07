@@ -16,14 +16,23 @@ void change_article(database_type *database){
     database->file_information->sorting_mode = unsorted;
 }
 void entry_article(struct database_type *database, int article_index) {
+    if(database->article_array->filled == 0){                             //if process is interrupted it shows database.article_array.filling = -1, while keeping new, and edited distinguished
+        entry_article_filled(-1,&database->article_array[article_index]);
+    }else if(database->article_array->filled == 1){
+        entry_article_filled(-2,&database->article_array[article_index]);
+    }
     entry_article_filled(-1,&database->article_array[article_index]); //if process is interrupted it shows database.article_array.filling = -1
     if (entry_article_name(database, article_index) == 0) {
         entry_article_price(&database->article_array[article_index]);
         entry_article_amount(&database->article_array[article_index]);
         entry_article_price_total(&database->article_array[article_index]);
         entry_article_price_category(&database->article_array[article_index]);
-        entry_article_time(&database->article_array[article_index]);
-        entry_article_filled(1, &database->article_array[article_index]);
+        if(database->article_array[article_index].filled == -1){
+            entry_article_time(&database->article_array[article_index]);
+        }else if(database->article_array[article_index].filled == -2){
+            entry_article_editing_time(&database->article_array[article_index]);
+        }
+        entry_article_filled(1,&database->article_array[article_index]);
         printf("entry successful\n");
     }
 }
@@ -113,6 +122,9 @@ void entry_article_price_total(struct article_type *article) {
 }
 void entry_article_time(struct article_type *article){
     time(&article->creation_date);
+    time(&article->last_edited);
+}
+void entry_article_editing_time(struct article_type*article){
     time(&article->last_edited);
 }
 
@@ -208,6 +220,78 @@ void quicksort_name(struct database_type *database, int left_boundary, int right
         quicksort_name_algorithm(database, left_boundary, right_boundary);
         database->file_information->sorting_mode = name_a_z;
     }
+}
+void quicksort_time_ledited(struct database_type *database, int left_boundary, int right_boundary){
+    if(database->file_information->sorting_mode == tm_create_recent_old){
+        turn_around(database);
+    }else if(database->file_information->sorting_mode == tm_edit_old_recent){
+        turn_around(database);
+    }else{
+        quicksort_time_algorithm_ledited(database, left_boundary, right_boundary);
+        database->file_information->sorting_mode = tm_edit_recent_old;
+    }
+}
+void quicksort_time_algorithm_ledited(struct database_type *database, int left_boundary, int right_boundary) {
+    int fix_point = (right_boundary + left_boundary) / 2, i = left_boundary, j = right_boundary;
+    double compare_time = database->article_array[fix_point].last_edited;
+    struct article_type dummy;
+    do {
+        while (database->article_array[i].last_edited < compare_time) {
+            i++;
+        }
+        while (database->article_array[j].last_edited > compare_time) {
+            j--;
+        }
+        if (i <= j) {
+            dummy = database->article_array[i];
+            database->article_array[i] = database->article_array[j];
+            database->article_array[j] = dummy;
+            i++;
+            j--;
+        }
+    } while (i <= j);
+    if (left_boundary < j) {
+        quicksort_price_algorithm(database, left_boundary, j);
+    }
+    if (right_boundary > i) {
+        quicksort_price_algorithm(database, i, right_boundary);
+    }
+}
+void quicksort_time_created(struct database_type *database, int left_boundary, int right_boundary){
+    if(database->file_information->sorting_mode == tm_create_recent_old){
+        turn_around(database);
+    }else if(database->file_information->sorting_mode == tm_create_old_recent){
+        turn_around(database);
+    }else{
+        quicksort_time_algorithm_ledited(database, left_boundary, right_boundary);
+        database->file_information->sorting_mode = tm_create_recent_old;
+    }
+}
+void quicksort_time_algorithm_created(struct database_type *database, int left_boundary, int right_boundary){
+        int fix_point = (right_boundary + left_boundary) / 2, i = left_boundary, j = right_boundary;
+        double comparetime = database->article_array[fix_point].creation_date;
+        struct article_type dummy;
+        do {
+            while (database->article_array[i].creation_date < comparetime) {
+                i++;
+            }
+            while (database->article_array[j].creation_date > comparetime) {
+                j--;
+            }
+            if (i <= j) {
+                dummy = database->article_array[i];
+                database->article_array[i] = database->article_array[j];
+                database->article_array[j] = dummy;
+                i++;
+                j--;
+            }
+        } while (i <= j);
+        if (left_boundary < j) {
+            quicksort_price_algorithm(database, left_boundary, j);
+        }
+        if (right_boundary > i) {
+            quicksort_price_algorithm(database, i, right_boundary);
+        }
 }
 void swap(database_type *database, int article_index_a, int article_index_b){
     article_type dummy;

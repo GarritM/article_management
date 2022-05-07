@@ -12,8 +12,14 @@
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
 
 void print_article(struct article_type article){
-    printf("%-12s%-5i %8.2f  %-9s  %10.2f\n",
-           article.name,article.amount,article.price,price_c_names[article.price_c],article.price_total);
+    struct tm time = *gmtime(&article.last_edited);
+    printf("%-12s%-5i %8.2f  %-9s  %10.2f\t %02d.%02d.%02d %d:%d:%d \n",
+           article.name,
+           article.amount,
+           article.price,
+           price_c_names[article.price_c],
+           article.price_total,
+           time.tm_mday,time.tm_mon + 1,time.tm_year +1900, time.tm_hour, time.tm_min, time.tm_sec);
 }
 void print_most_expensive_article(struct database_type *database){
     print_table_header();
@@ -36,7 +42,7 @@ void print_complete_db(struct database_type database){
     printf("\t\t\t\t\tTotal:%11.2f\n", running_total);
 }
 void print_table_header(){
-    printf("\nNo.\tarticle\t    amount   price  category\t    total\n");
+    printf("\nNo.\tarticle\t    amount   price  category\t    total\t edited at\n");
 }
 
 int get_index_most_expensive_article(struct database_type *database) {
@@ -189,6 +195,8 @@ int user_menu(struct database_type *database){
                                "[1] turn around the database\n"
                                "[2] sort the database by price\n"
                                "[3] sort the database alphabetically\n"
+                               "[4] sort the database by editing date\n"
+                               "[5] sort the database by creation date\n"
                                "[0] back\n");
                         scanf("%i", &option_number);
 
@@ -205,6 +213,14 @@ int user_menu(struct database_type *database){
                         /*quicksort_price via name*/
                         else if (option_number == 3) {
                             return 243;
+                        }
+                        /*quicksort_price via date of last edit*/
+                        else if (option_number == 4) {
+                            return 244;
+                        }
+                        /*quicksort_price via date of creation*/
+                        else if (option_number == 5) {
+                            return 245;
                         }
                         /*back*/
                         else if (option_number == 0) {

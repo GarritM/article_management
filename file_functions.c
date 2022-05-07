@@ -87,13 +87,15 @@ void save_database(struct database_type database){
     else{
         fprintf(db_save,"%i;%i\n",database.file_information->size,database.file_information->sorting_mode);
         for (int i = 0; i < database.file_information->size; i++) {
-                fprintf(db_save, "%s;%i;%.2f;%.2f;%d;%i\n",
+                fprintf(db_save, "%s;%i;%.2f;%.2f;%d;%i;%ld;%ld\n",
                         database.article_array[i].name,
                         database.article_array[i].amount,
                         database.article_array[i].price,
                         database.article_array[i].price_total,
                         database.article_array[i].price_c,
-                        database.article_array[i].filled);
+                        database.article_array[i].filled,
+                        database.article_array[i].last_edited,
+                        database.article_array[i].creation_date);
 
         }
     }
@@ -119,8 +121,9 @@ void load_database(struct database_type *database){
                 database->article_array[i].price_total = atof(strtok(NULL,";"));
                 database->article_array[i].price_c = atof(strtok(NULL,";"));
                 database->article_array[i].filled = atof(strtok(NULL,";"));
+                database->article_array[i].creation_date = (time_t)atol(strtok(NULL,";"));
+                database->article_array[i].last_edited =(time_t)atol(strtok(NULL,";"));
             }
-            strcpy(database->file_information->file_name,file_name);
             printf("loading successful\n");
 
         }
