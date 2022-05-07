@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "user_interface.h"
 #include "file_functions.h"
@@ -71,13 +72,13 @@ int get_index_cheapest_article(struct database_type *database) {
 }
 void get_article_by_name(struct database_type *database){
     if(database->file_information->sorting_mode != name_a_z){
-        quicksort_name(database,0,database->file_information->size);
-        printf("Be aware, that the database has been resorted alphabetically.\n");
+        quicksort_name(database,0,database->file_information->size-1);
+        printf("Be aware, that the database has been sorted alphabetically.\n");
     }
     char searched_article[100];
     printf("Type in the name of the article you are searching:\n");
     scanf("%s", &searched_article);
-    int found_result = binary_search_article_in_range(database, searched_article, 0, database->file_information->size);
+    int found_result = binary_search_article_in_range(database, searched_article, 0, database->file_information->size-1);
     if(found_result >= 0) {
         print_table_header();
         printf("%i\t", found_result);
@@ -89,21 +90,18 @@ void get_article_by_name(struct database_type *database){
     }
 
 }
-int binary_search_article_in_range(struct database_type database, char* searched_article, int left_boundary, int right_boundary){
-    /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-    /* WARNING: "database" has to be sorted by name, before this function can be used properly!*/
-    /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-    if(database.file_information->sorting_mode != name_a_z){
+int binary_search_article_in_range(struct database_type *database, char* searched_article, int left_boundary, int right_boundary){
+    if(database->file_information->sorting_mode != name_a_z){
         return -1;
     }
-    int fix_point = (right_boundary - left_boundary) / 2 + left_boundary;
-    int compare_result = strcmp(searched_article, database.article_array[fix_point].name);
-    if(right_boundary == left_boundary && compare_result != 0){
+    int fix_point = (int)ceil((right_boundary - left_boundary) / 2) + left_boundary;
+    int compare_result = strcmp(searched_article, database->article_array[fix_point].name);
+    if(right_boundary < left_boundary){
         return -1;
     }else if(compare_result > 0){
         return binary_search_article_in_range(database, searched_article, fix_point + 1, right_boundary);
     }else if(compare_result < 0){
-        return binary_search_article_in_range(database, searched_article, left_boundary, fix_point);
+        return binary_search_article_in_range(database, searched_article, left_boundary, fix_point-1);
     }else if(compare_result == 0){
         return fix_point;
     }else{
@@ -130,7 +128,7 @@ int user_menu(struct database_type *database){
                        "[1] print the whole database\n"
                        "[2] print most expensive article\n"
                        "[3] print cheapest article\n"
-                       "[4] search and print an article by name\n"
+                       "[4] search and print one article by name\n"
                        "[0] back\n");
                 scanf("%i", &option_number);
 
