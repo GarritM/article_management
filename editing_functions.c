@@ -235,10 +235,10 @@ void quicksort_time_algorithm_ledited(struct database_type *database, int left_b
     double compare_time = database->article_array[fix_point].last_edited;
     struct article_type dummy;
     do {
-        while (database->article_array[i].last_edited < compare_time) {
+        while (database->article_array[i].last_edited > compare_time) {
             i++;
         }
-        while (database->article_array[j].last_edited > compare_time) {
+        while (database->article_array[j].last_edited < compare_time) {
             j--;
         }
         if (i <= j) {
@@ -250,10 +250,10 @@ void quicksort_time_algorithm_ledited(struct database_type *database, int left_b
         }
     } while (i <= j);
     if (left_boundary < j) {
-        quicksort_price_algorithm(database, left_boundary, j);
+        quicksort_time_algorithm_ledited(database, left_boundary, j);
     }
     if (right_boundary > i) {
-        quicksort_price_algorithm(database, i, right_boundary);
+        quicksort_time_algorithm_ledited(database, i, right_boundary);
     }
 }
 void quicksort_time_created(struct database_type *database, int left_boundary, int right_boundary){
@@ -271,10 +271,10 @@ void quicksort_time_algorithm_created(struct database_type *database, int left_b
         double comparetime = database->article_array[fix_point].creation_date;
         struct article_type dummy;
         do {
-            while (database->article_array[i].creation_date < comparetime) {
+            while (database->article_array[i].creation_date > comparetime) {
                 i++;
             }
-            while (database->article_array[j].creation_date > comparetime) {
+            while (database->article_array[j].creation_date < comparetime) {
                 j--;
             }
             if (i <= j) {
@@ -286,10 +286,10 @@ void quicksort_time_algorithm_created(struct database_type *database, int left_b
             }
         } while (i <= j);
         if (left_boundary < j) {
-            quicksort_price_algorithm(database, left_boundary, j);
+            quicksort_time_algorithm_created(database, left_boundary, j);
         }
         if (right_boundary > i) {
-            quicksort_price_algorithm(database, i, right_boundary);
+            quicksort_time_algorithm_created(database, i, right_boundary);
         }
 }
 void swap(database_type *database, int article_index_a, int article_index_b){

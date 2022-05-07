@@ -48,21 +48,23 @@ void printing_configuration(database_type *database){
 void print_article(struct article_type article, unsigned int p_conf) {
     struct tm time_edit = *gmtime(&article.last_edited),
             time_created = *gmtime(&article.creation_date);
+    //TODO Optimize: it's ok, when printing a single articles, for ranges of articles configurations should be done once...
     if (p_conf & 1) {
         printf("%-13s", article.name);
     }if (p_conf & 16) {
         printf("%-7i", article.amount);
     }if (p_conf & 2) {
-        printf("%8.2f ", article.price);
+        printf("%8.2f  ", article.price);
     }if (p_conf & 8){
         printf("%-9s", price_c_names[article.price_c]);
     }if (p_conf & 4){
         printf("%13.2f  ", article.price_total);
     }if (p_conf & 128){
-        printf("%02d.%02d.%02d %2d:%2d:%2d   ",time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900, time_edit.tm_hour, time_edit.tm_min, time_edit.tm_sec);
-    }if (p_conf & 256) {
-        printf("%02d.%02d.%02d %2d:%2d:%2d\n", time_created.tm_mday, time_created.tm_mon + 1, time_created.tm_year + 1900,
+        printf("%02d.%02d.%02d %2d:%2d:%2d   ", time_created.tm_mday, time_created.tm_mon + 1, time_created.tm_year + 1900,
                time_created.tm_hour, time_created.tm_min, time_created.tm_sec);
+    }if (p_conf & 256) {
+        printf("%02d.%02d.%02d %2d:%2d:%2d\n",time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900,
+               time_edit.tm_hour, time_edit.tm_min, time_edit.tm_sec);
     }
 }
 void print_most_expensive_article(struct database_type *database){
@@ -92,15 +94,15 @@ void print_table_header(unsigned int p_conf){
     }if (p_conf & 16) {
         printf("amount ");
     }if (p_conf & 2) {
-        printf("   price ");
+        printf("   price  ");
     }if (p_conf & 8){
         printf("category  ");
     }if (p_conf & 4){
         printf("       total  ");
     }if (p_conf & 128){
-        printf("last time edited      ");
+        printf("created               ");
     }if (p_conf & 256) {
-        printf("created\n");
+        printf("last time edited\n");
     }
 }
 

@@ -86,7 +86,7 @@ void save_database(struct database_type database){
     }
         /*tatsächliches schreiben in datei*/
     else{
-        fprintf(db_save,"%i;%i\n",database.file_information->size,database.file_information->sorting_mode);
+        fprintf(db_save,"%i;%i;%i\n",database.file_information->size,database.file_information->sorting_mode,database.file_information->print_conf);
         for (int i = 0; i < database.file_information->size; i++) {
                 fprintf(db_save, "%s;%i;%.2f;%.2f;%d;%i;%ld;%ld\n",
                         database.article_array[i].name,
@@ -112,8 +112,9 @@ void load_database(struct database_type *database){
             printf("loading unsuccessful\n");
         }else{
             fscanf(db_read, "%s", line_buffer);
-            database->file_information->size = atoi(strtok(line_buffer, ";"));
+            database->file_information->size = atoi(strtok(line_buffer,";"));
             database->file_information->sorting_mode = atoi(strtok(NULL,";"));
+            database->file_information->print_conf = atoi(strtok(NULL,";"));
             database->article_array = create_article_array(database->file_information->size);
             for(int i = 0; i<database->file_information->size;i++){
                 fscanf(db_read, "%s", line_buffer); //wieso nicht "&line_buffer"?
