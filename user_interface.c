@@ -49,19 +49,19 @@ void print_article(struct article_type article, unsigned int p_conf) {
     struct tm time_edit = *gmtime(&article.last_edited),
             time_created = *gmtime(&article.creation_date);
     if (p_conf & 1) {
-        printf("%-12s", article.name);
+        printf("%-13s", article.name);
     }if (p_conf & 16) {
-        printf("%-5i", article.amount);
+        printf("%-7i", article.amount);
     }if (p_conf & 2) {
-        printf("%8.2f", article.price);
+        printf("%8.2f ", article.price);
     }if (p_conf & 8){
         printf("%-9s", price_c_names[article.price_c]);
     }if (p_conf & 4){
-        printf("%10.2f\t", article.price_total);
+        printf("%13.2f  ", article.price_total);
     }if (p_conf & 128){
-        printf("%02d.%02d.%02d %d:%d:%d\t",time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900, time_edit.tm_hour, time_edit.tm_min, time_edit.tm_sec);
+        printf("%02d.%02d.%02d %2d:%2d:%2d   ",time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900, time_edit.tm_hour, time_edit.tm_min, time_edit.tm_sec);
     }if (p_conf & 256) {
-        printf("%02d.%02d.%02d %d:%d:%d\n", time_created.tm_mday, time_created.tm_mon + 1, time_created.tm_year + 1900,
+        printf("%02d.%02d.%02d %2d:%2d:%2d\n", time_created.tm_mday, time_created.tm_mon + 1, time_created.tm_year + 1900,
                time_created.tm_hour, time_created.tm_min, time_created.tm_sec);
     }
 }
@@ -78,27 +78,27 @@ void print_complete_db(struct database_type database){
     print_table_header(database.file_information->print_conf);
     for(int i=0; i < database.file_information->size; i++){
         if(database.article_array[i].filled == 1){
-            printf("%i\t",i);
+            printf("%-5i",i);
             print_article(database.article_array[i],database.file_information->print_conf);
             running_total += database.article_array[i].price_total;
         }
     }
     printf("\t\t\t\t\tTotal:%11.2f\n", running_total);
 }
-void print_table_header(unsigned int p_conf){ //TODO: formatting
-    printf("\nNo.\t");
+void print_table_header(unsigned int p_conf){
+    printf("\nNo.  ");
     if (p_conf & 1) {
-        printf("article\t");
+        printf("article      ");
     }if (p_conf & 16) {
-        printf("amount\t");
+        printf("amount ");
     }if (p_conf & 2) {
-        printf("price\t");
+        printf("   price ");
     }if (p_conf & 8){
-        printf("category\t");
+        printf("category  ");
     }if (p_conf & 4){
-        printf("total\t");
+        printf("       total  ");
     }if (p_conf & 128){
-        printf("last time edited\t");
+        printf("last time edited      ");
     }if (p_conf & 256) {
         printf("created\n");
     }
