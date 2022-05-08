@@ -32,26 +32,25 @@ void file_stat(char *filepath) {
             printf("right to write\n");
         }
 #elif __unix
-        char vector[10] = "----------";
-        if(attr.st_mode & S_IRUSR) vector[0] = 'r';
-        if(attr.st_mode & S_IWUSR) vector[1] = 'w';
-        if(attr.st_mode & S_IXUSR) vector[2] = 'x';
-        if(attr.st_mode & S_IRGRP) vector[3] = 'r';
-        if(attr.st_mode & S_IWGRP) vector[4] = 'w';
-        if(attr.st_mode & S_IXGRP) vector[5] = 'x';
-        if(attr.st_mode & S_IROTH) vector[6] = 'r';
-        if(attr.st_mode & S_IWOTH) vector[7] = 'w';
-        if(attr.st_mode & S_IXOTH) vector[8] = 'x';
-        printf("%s access rights\n");
+        char file_rights[10] = "----------";
+        if(attr.st_mode & S_IRUSR) file_rights[0] = 'r';
+        if(attr.st_mode & S_IWUSR) file_rights[1] = 'w';
+        if(attr.st_mode & S_IXUSR) file_rights[2] = 'x';
+        if(attr.st_mode & S_IRGRP) file_rights[3] = 'r';
+        if(attr.st_mode & S_IWGRP) file_rights[4] = 'w';
+        if(attr.st_mode & S_IXGRP) file_rights[5] = 'x';
+        if(attr.st_mode & S_IROTH) file_rights[6] = 'r';
+        if(attr.st_mode & S_IWOTH) file_rights[7] = 'w';
+        if(attr.st_mode & S_IXOTH) file_rights[8] = 'x';
+        printf("%s access rights\n", file_rights);
 
         printf("%d UID\n", attr.st_uid);
         printf("%d GID\n", attr.st_gid);
-#endif
-        printf("%ld Byte\n", attr.st_size);
-        printf("last time accessed: %s", ctime(&attr.st_atime));
-#ifdef __unix
         printf("last change: %s", ctime(&attr.st_atime));
 #endif
+
+        printf("%ld Byte\n", attr.st_size);
+        printf("last time accessed: %s", ctime(&attr.st_atime));
 
     }
 }
@@ -185,18 +184,22 @@ int grant_writing_rights(struct database_information_type *file_information) {
     stat(file_information->file_name, &file_attr);
 #ifdef _WIN32 | _WIN64
     chmod(file_information->file_name, S_IWRITE | S_IREAD);
-    printf("write access granted for %s\n",file_information->file_name);
-    return 1;
 #endif
+#ifdef __unix
+    chmod(file_information->file_name, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH);
+#endif
+    printf("write access granted for %s\n", file_information->file_name);
+    return 1;
 }
-
 int revoke_writing_rights(struct database_information_type *file_information) {
     struct stat file_attr;
     stat(file_information->file_name, &file_attr);
 #ifdef _WIN32 | _WIN64
     chmod(file_information->file_name, S_IREAD);
+#endif
+#ifdef __unix
+    chmod(file_information->file_name, S_IRUSR | S_IRGRP | S_IROTH);
+#endif
     printf("write access revoked for %s\n", file_information->file_name);
     return 1;
-#endif
 }
-
