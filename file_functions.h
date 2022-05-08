@@ -49,6 +49,10 @@ void reduce_article_array();
 
 void load_database();
 void save_database();
+void close_database();
+
 void file_stat();
+int grant_writing_rights();
+int revoke_writing_rights();
 
 #endif //UNTITLED3_FILE_FUNCTIONS_H

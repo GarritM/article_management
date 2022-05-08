@@ -3,6 +3,7 @@
 //
 
 #include "file_functions.h"
+#include "user_interface.h"
 #include <time.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -14,20 +15,44 @@ void file_stat(char *filepath) {
     struct stat attr;
     if (stat(filepath, &attr)) {
         printf("Access to file attributes denied.\n");
-    } else {
+    }
+
+
+    else {
         if (attr.st_mode & S_IFREG) {
             printf("regular file\n");
         } else if (attr.st_mode & S_IFDIR) {
             printf("directory file\n");
         }
+#ifdef _WIN32
         if (attr.st_mode & S_IREAD) {
             printf("right to read\n");
         }
         if (attr.st_mode & S_IWRITE) {
             printf("right to write\n");
         }
+#elif __unix
+        char vector[10] = "----------";
+        if(attr.st_mode & S_IRUSR) vector[0] = 'r';
+        if(attr.st_mode & S_IWUSR) vector[1] = 'w';
+        if(attr.st_mode & S_IXUSR) vector[2] = 'x';
+        if(attr.st_mode & S_IRGRP) vector[3] = 'r';
+        if(attr.st_mode & S_IWGRP) vector[4] = 'w';
+        if(attr.st_mode & S_IXGRP) vector[5] = 'x';
+        if(attr.st_mode & S_IROTH) vector[6] = 'r';
+        if(attr.st_mode & S_IWOTH) vector[7] = 'w';
+        if(attr.st_mode & S_IXOTH) vector[8] = 'x';
+        printf("%s access rights\n");
+
+        printf("%d UID\n", attr.st_uid);
+        printf("%d GID\n", attr.st_gid);
+#endif
         printf("%ld Byte\n", attr.st_size);
-        printf("last time accessed: %s\n", ctime(&attr.st_atime));
+        printf("last time accessed: %s", ctime(&attr.st_atime));
+#ifdef __unix
+        printf("last change: %s", ctime(&attr.st_atime));
+#endif
+
     }
 }
 struct article_type *create_article_array(int array_size){
@@ -72,6 +97,41 @@ void reduce_article_array(struct database_type *database, int reduction_size){
     }
 }
 
+void load_database(struct database_type *database){
+    FILE *db_read;
+    char line_buffer[500], file_name[1000];
+    printf("Path of file to open:\n");
+    scanf("%s", &database->file_information->file_name);
+
+    //writing rights for the loaded files are changed, denied till this file is closed
+    //TODO implement: close-function
+    revoke_writing_rights(database->file_information);
+    file_stat(database->file_information->file_name);
+    if((db_read=fopen(database->file_information->file_name, "r")) == NULL){
+        printf("loading unsuccessful\n");
+    }else{
+        fscanf(db_read, "%s", line_buffer);
+        database->file_information->size = atoi(strtok(line_buffer,";"));
+        database->file_information->sorting_mode = atoi(strtok(NULL,";"));
+        database->file_information->print_conf = atoi(strtok(NULL,";"));
+        database->article_array = create_article_array(database->file_information->size);
+        for(int i = 0; i<database->file_information->size;i++){
+            fscanf(db_read, "%s", line_buffer); //wieso nicht "&line_buffer"?
+            strcpy(database->article_array[i].name, strtok(line_buffer,";"));
+            database->article_array[i].amount = atoi(strtok(NULL,";"));
+            database->article_array[i].price = atof(strtok(NULL,";"));
+            database->article_array[i].price_total = atof(strtok(NULL,";"));
+            database->article_array[i].price_c = atof(strtok(NULL,";"));
+            database->article_array[i].filled = atof(strtok(NULL,";"));
+            database->article_array[i].creation_date = (time_t)atol(strtok(NULL,";"));
+            database->article_array[i].last_edited =(time_t)atol(strtok(NULL,";"));
+        }
+        printf("loading successful\n");
+        printf("\n");
+
+    }
+    fclose(db_read);
+}
 void save_database(struct database_type database){
     FILE *db_save;
     if(strcmp(database.file_information->file_name, "<empty>") == 0){
@@ -79,6 +139,8 @@ void save_database(struct database_type database){
         scanf("%s",database.file_information->file_name); //TODO: filename, should be assembled so that the file is saved in the same place always
                                                           //      this makes it possible to display the files from which u can load
     }
+    printf("saving Database in %s\n", database.file_information->file_name);
+    grant_writing_rights(database.file_information);
     db_save = fopen(database.file_information->file_name, "wb");
     /*fehlerprüfung*/
     if(db_save == NULL){
@@ -97,39 +159,44 @@ void save_database(struct database_type database){
                         database.article_array[i].filled,
                         database.article_array[i].creation_date,
                         database.article_array[i].last_edited);
-
         }
+        printf("saving process successful\n");
     }
-    fclose(db_save);
-}
-void load_database(struct database_type *database){
-    FILE *db_read;
-    char line_buffer[500], file_name[1000];
-    printf("Path of file to open:\n");
-    scanf("%s", &database->file_information->file_name);
-    file_stat(database->file_information->file_name);
-    if((db_read=fopen(database->file_information->file_name, "r")) == NULL){
-            printf("loading unsuccessful\n");
-        }else{
-            fscanf(db_read, "%s", line_buffer);
-            database->file_information->size = atoi(strtok(line_buffer,";"));
-            database->file_information->sorting_mode = atoi(strtok(NULL,";"));
-            database->file_information->print_conf = atoi(strtok(NULL,";"));
-            database->article_array = create_article_array(database->file_information->size);
-            for(int i = 0; i<database->file_information->size;i++){
-                fscanf(db_read, "%s", line_buffer); //wieso nicht "&line_buffer"?
-                strcpy(database->article_array[i].name, strtok(line_buffer,";"));
-                database->article_array[i].amount = atoi(strtok(NULL,";"));
-                database->article_array[i].price = atof(strtok(NULL,";"));
-                database->article_array[i].price_total = atof(strtok(NULL,";"));
-                database->article_array[i].price_c = atof(strtok(NULL,";"));
-                database->article_array[i].filled = atof(strtok(NULL,";"));
-                database->article_array[i].creation_date = (time_t)atol(strtok(NULL,";"));
-                database->article_array[i].last_edited =(time_t)atol(strtok(NULL,";"));
-            }
-            printf("loading successful\n");
 
+    revoke_writing_rights(database.file_information);
+    printf("\n");
+}
+void close_database(struct database_type *database) {
+    if (strcmp(database->file_information->file_name, "<empty>") != 0) {
+        printf("Do u want to save your changes before closing the file? (y/n)\n");
+        if (ask_for_answer() == 1) {
+            save_database(*database);
         }
-    fclose(db_read);
+        grant_writing_rights(database->file_information);
+        free(database->article_array);
+        free(database->file_information);
+        printf("file closed\n");
+
+    }
+}
+
+int grant_writing_rights(struct database_information_type *file_information) {
+    struct stat file_attr;
+    stat(file_information->file_name, &file_attr);
+#ifdef _WIN32 | _WIN64
+    chmod(file_information->file_name, S_IWRITE | S_IREAD);
+    printf("write access granted for %s\n",file_information->file_name);
+    return 1;
+#endif
+}
+
+int revoke_writing_rights(struct database_information_type *file_information) {
+    struct stat file_attr;
+    stat(file_information->file_name, &file_attr);
+#ifdef _WIN32 | _WIN64
+    chmod(file_information->file_name, S_IREAD);
+    printf("write access revoked for %s\n", file_information->file_name);
+    return 1;
+#endif
 }
 

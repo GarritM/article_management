@@ -12,14 +12,14 @@
 
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
 int ask_for_answer(){
-
     char answer = '0';
-    while(answer != 'y'&& answer !='n'){
-        scanf("%c",&answer);
-    }
+    do{ //Debug
+        scanf("%c", &answer);
+    }while(answer != 'y'&& answer !='n');
     if(answer == 'y'){
         return 1;
-    }else if(answer == 'n'){
+    }
+    if(answer == 'n'){
         return 0;
     }
 }
@@ -85,7 +85,7 @@ void print_complete_db(struct database_type database){
             running_total += database.article_array[i].price_total;
         }
     }
-    printf("\t\t\t\t\tTotal:%11.2f\n", running_total);
+    printf("Total Value:%12.2f\n", running_total);
 }
 void print_table_header(unsigned int p_conf){
     printf("\nNo.  ");

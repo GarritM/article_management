@@ -15,7 +15,15 @@ int main() {
            "\n"
            "Version: 1.2\n"
            "by Garrit Morrin\n"
-           "\n"
+           "currently running on: ");
+#ifdef __unix
+    printf("Unix\n");
+#elif _WIN32
+    printf("Win32\n");
+#elif _WIN64
+    printf("Win64\n");
+#endif
+    printf("\n"
            "\n"
            "Welcome!\n"
            "\n"
@@ -61,9 +69,6 @@ int main() {
             load_database(&database);
         }
     }/*-1 is the return-value of "user_menu()" to close the programm*/
-    if (database.article_array != NULL) {
-        free(database.article_array);
-        free(database.file_information);
-    }
+    close_database(&database);
     return 0;
 }
