@@ -6,7 +6,7 @@
 #define UNTITLED3_FILE_FUNCTIONS_H
 #include <time.h>
 
-typedef struct article_type {
+typedef struct article_type { //TODO implement/change: article_type should be a list (when there are many many articles its maybe hard to reallocate for every new element)
     char name[100];
     double price, price_total;
     enum price_cs {
@@ -40,6 +40,8 @@ typedef struct database_type{
     database_information_type *file_information;
     article_type *article_array;
 }database_type;
+
+void initialize();
 
 struct article_type *create_article_array();
 struct database_type database_creation();

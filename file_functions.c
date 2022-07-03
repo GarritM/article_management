@@ -9,7 +9,45 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <unistd.h>
 
+void initialize(){
+
+    printf("\n******************************\n"
+           "you opened the program:\n"
+           "\"article_management\"\n"
+           "\n"
+           "Version: 1.2\n"
+           "by Garrit Morrin\n"
+           "%s\n"
+           "currently running on: ", __TIMESTAMP__);
+#ifdef __unix
+    printf("Unix\n");
+#elif _WIN32
+    printf("Win32\n");
+#elif _WIN64
+    printf("Win64\n");
+#endif
+    printf("\n"
+           "\n"
+           "Welcome!\n"
+           "*******************************\n\n");
+
+    DIR *directory_pointer;
+    struct dirent *entry_pointer;
+    int dir_existence_check = 0;
+    if((directory_pointer = opendir(".."))){
+        while((entry_pointer = readdir(directory_pointer))){
+            if(strcmp(entry_pointer->d_name, "Databases") == 0)
+                dir_existence_check = 1;
+            break;
+        }
+        if(dir_existence_check == 0){
+            mkdir("Databases");
+        }
+    }
+}
 
 void file_stat(char *filepath) {
     struct stat attr;
@@ -98,9 +136,30 @@ void reduce_article_array(struct database_type *database, int reduction_size){
 
 void load_database(struct database_type *database){
     FILE *db_read;
-    char line_buffer[500], file_name[1000];
-    printf("Path of file to open:\n");
-    scanf("%s", &database->file_information->file_name);
+    DIR *directory_pointer;
+    char line_buffer[500], local_file_name[1000], directory_name[1000];
+    struct dirent *entry_pointer;
+    if(!(directory_pointer = opendir(".\\Databases"))){
+        printf("unable to read the directory\n");
+        printf("Give an absolute path of file to open:\n");
+        scanf("%s", &database->file_information->file_name);
+    }
+    printf("Which of the following files do u want to open:\n"); //TODO: exclude possibility of empty folder
+
+    while((entry_pointer = readdir(directory_pointer))){
+        if(strcmp(entry_pointer->d_name,".")!=0 && strcmp(entry_pointer->d_name, ".."))
+        printf("%s\n",entry_pointer->d_name);
+    }
+    getcwd(directory_name, 1000);
+    strcpy(&database->file_information->file_name, directory_name);
+#ifdef _WIN32 | _WIN64
+    strcat(&database->file_information->file_name, "\\Databases\\");
+#endif
+#ifdef __unix
+    strcat(&database->file_information->file_name, "/Database/");
+#endif
+    scanf("%s", local_file_name);
+    strcat(&database->file_information->file_name,local_file_name);
 
     //writing rights for the loaded files are changed, denied till this file is closed
     //TODO implement: close-function
@@ -167,7 +226,7 @@ void save_database(struct database_type database){
 }
 void close_database(struct database_type *database) {
     if (strcmp(database->file_information->file_name, "<empty>") != 0) {
-        printf("Do u want to save your changes before closing the file? (y/n)\n");
+        printf("Do u want to save your changes before closing the file? (y/n)\n"); //TODO implement: indicator for changes of the file in Database.file_information
         if (ask_for_answer() == 1) {
             save_database(*database);
         }
@@ -188,7 +247,7 @@ int grant_writing_rights(struct database_information_type *file_information) {
 #ifdef __unix
     chmod(file_information->file_name, S_IRUSR | S_IRGRP | S_IROTH | S_IWUSR | S_IWGRP | S_IWOTH);
 #endif
-    printf("write access granted for %s\n", file_information->file_name);
+    printf("writing access granted for %s\n", file_information->file_name);
     return 1;
 }
 int revoke_writing_rights(struct database_information_type *file_information) {

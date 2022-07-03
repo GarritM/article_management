@@ -13,7 +13,7 @@
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
 int ask_for_answer(){
     char answer = '0';
-    do{ //Debug
+    do{
         scanf("%c", &answer);
     }while(answer != 'y'&& answer !='n');
     if(answer == 'y'){
@@ -36,10 +36,11 @@ void printing_configuration(database_type *database){
     database->file_information->print_conf = ask_for_answer()*8 | database->file_information->print_conf;
     printf("...the amount? (y/n)\n");
     database->file_information->print_conf = ask_for_answer()*16 | database->file_information->print_conf;
-    printf("...the refreshing? (y/n)\n");
-    database->file_information->print_conf = ask_for_answer()*32 | database->file_information->print_conf;
-    printf("...the filling? (y/n)\n");
-    database->file_information->print_conf = ask_for_answer()*64 | database->file_information->print_conf;
+//    printf("...the refreshing? (y/n)\n");
+//    database->file_information->print_conf = ask_for_answer()*32 | database->file_information->print_conf;
+//    printf("...the filling? (y/n)\n");
+//    database->file_information->print_conf = ask_for_answer()*64 | database->file_information->print_conf;
+//      filling and refreshing are not implemented
     printf("...the time of creation? (y/n)\n");
     database->file_information->print_conf = ask_for_answer()*128 | database->file_information->print_conf;
     printf("...the last time of editing? (y/n)\n");
@@ -48,7 +49,7 @@ void printing_configuration(database_type *database){
 void print_article(struct article_type article, unsigned int p_conf) {
     struct tm time_edit = *gmtime(&article.last_edited),
             time_created = *gmtime(&article.creation_date);
-    //TODO Optimize: it's ok, when printing a single articles, for ranges of articles configurations should be done once...
+    //TODO Optimize: it's ok, when printing a single article, for ranges of articles the if-configurations should be done one layer above...
     if (p_conf & 1) {
         printf("%-13s", article.name);
     }if (p_conf & 16) {
@@ -351,4 +352,4 @@ int user_menu(struct database_type *database){
         }
     }
     return 0;
-}/*Optionswahl durch user_innen, returned eine für jede option eindeutige nummer zurück, nämlich die aneinandergereihte Zahl der Optionen*/
+}/*Optionswahl durch user_innen, returned eine für jede option eindeutige nummer zurück, nämlich die aneinandergereihte Zahl der Wahlen*/

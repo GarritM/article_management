@@ -1,0 +1,9 @@
+//
+// Created by garri on 30.06.2022.
+//
+
+#ifndef ARTICLE_MANAGEMENT_1_2_NETWORK_FUNCTIONS_H
+#define ARTICLE_MANAGEMENT_1_2_NETWORK_FUNCTIONS_H
+
+//TODO: include all functions
+#endif //ARTICLE_MANAGEMENT_1_2_NETWORK_FUNCTIONS_H

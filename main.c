@@ -8,31 +8,10 @@
 int main() {
 
     database_type database = database_creation();
-
-    printf("\n**********************************************\n"
-           "you opened the program:\n"
-           "\"article_management\"\n"
-           "\n"
-           "Version: 1.2\n"
-           "by Garrit Morrin\n"
-           "currently running on: ");
-#ifdef __unix
-    printf("Unix\n");
-#elif _WIN32
-    printf("Win32\n");
-#elif _WIN64
-    printf("Win64\n");
-#endif
-    printf("\n"
-           "\n"
-           "Welcome!\n"
-           "\n"
-           "There is a testing file u can load from in this\n"
-           "project-folder called: \"Database.csv\".\n"
-           "**********************************************\n\n");
+    initialize();
 
     int chosen_option = 0;
-
+//TODO: create 1 extra thread for the server-loop
     while (chosen_option != -1) {
         chosen_option = user_menu(database);
         if (chosen_option == 11) {
@@ -70,5 +49,9 @@ int main() {
         }
     }/*-1 is the return-value of "user_menu()" to close the programm*/
     close_database(&database);
+    printf("program closed at %s\n\n"
+           "***********\n"
+           "~Good bye!~\n"
+           "***********\n", __TIMESTAMP__);
     return 0;
 }

@@ -63,8 +63,8 @@ int entry_article_name(database_type *database, int article_index) {
     do {
         dump = getchar();
     } while (dump != '\n' && dump != EOF);
-    //the real scanning; scans negation of subset [\n]
-    if (scanf("%[^\n]", buffer)) { //TODO: Stackoverflow said this is the worst possible way to implement this, learn gets(); vulnerable to buffer overflow-shit
+    //the real scanning; scans negation of set [\n]
+    if (scanf("%[^\n]", buffer)) { //TODO: Stackoverflow said this is the worst possible way to implement this, learn gets(); vulnerable to buffer overflow
         buffer[99] = "\0";
         strcpy(name, buffer);
     } else {
