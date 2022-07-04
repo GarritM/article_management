@@ -162,7 +162,6 @@ void load_database(struct database_type *database){
     strcat(&database->file_information->file_name,local_file_name);
 
     //writing rights for the loaded files are changed, denied till this file is closed
-    //TODO implement: close-function
     revoke_writing_rights(database->file_information);
     file_stat(database->file_information->file_name);
     if((db_read=fopen(database->file_information->file_name, "r")) == NULL){
@@ -186,7 +185,6 @@ void load_database(struct database_type *database){
         }
         printf("loading successful\n");
         printf("\n");
-
     }
     fclose(db_read);
 }

@@ -2,42 +2,20 @@
 // Created by garri on 30.06.2022.
 //
 
-//TODO: for windows first
-//  client
-//      initialize winsock (if win)
-//      init socket
-//      init connection
-//      send-function
-//          copyrequest
+//TODO: before implementing this, make it portable for UNIX (this wont be fun)
+//TODO implement:
+//          copy-request
 //          synchronize
 //          deleterequest
 //          entryrequest
 //          changerequest
-//      close socket
-//      clear winsock (if win)
-//  server
-//      initialize winsock (if win)
-//      init socket
-//      bind
-//      listen
-//      accept
-//      recv
-//          synchronize
-//          deleterequest
-//          entryrequest
-//          changerequest
-//      close socket
-//      clear winsock (if win)
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <time.h>
 #include <winsock2.h>
 #include <windows.h> //seems to be required for some Windows-Versions
-#include <io.h>
 
 #define BUF 1024
 
@@ -129,7 +107,6 @@ void connect_socket(SOCKET *socket, char *serv_addr, unsigned short port) {
 /*send data via TCP*/
 void TCP_send(SOCKET *socket, char *data, size_t size){
     if(send(*socket, data, size, 0) == SOCKET_ERROR){             //TODO: implement correction code;
-                                                                //      what happens when datas are sent in multiple packages?
         exit_error("error during sending the data occured");
     }
 }
@@ -149,8 +126,6 @@ void cleanup(void){
     printf("Winsock cleanup finished\n");
 }
 
-//TODO debug: first receive/send output is weird
-
 /*initialize server*/
 int init_server() {
     init_winsock();
@@ -161,7 +136,7 @@ int init_server() {
     atexit(cleanup); //when process is closed, the function cleanup is called
 
     sock1 = create_socket();
-    bind_socket(&sock1, INADDR_ANY, 15000); //TODO: port assignment should be somehow automated
+    bind_socket(&sock1, INADDR_ANY, 15000); //TODO: what happens when port 15000 is already used?
     listen_socket(&sock1);
     accept_socket(&sock1, &sock2);
     do {
@@ -169,7 +144,7 @@ int init_server() {
         fflush(stdin);
         fgets(buffer, BUF, stdin);
         TCP_send(&sock2, buffer, strlen(buffer));
-        TCP_receive(&sock2, buffer, BUF - 1); // -1 so that its still zero-terminated I guess
+        TCP_receive(&sock2, buffer, BUF - 1); // -1 so that it's still zero-terminated I guess
         printf("message received: %s\n", buffer);
     } while (strcmp(buffer, "quit\n") != 0);
     closesocket(sock2);
@@ -186,7 +161,7 @@ int init_client(){
 
     sock_client = create_socket();
     atexit(cleanup); //when process is closed, the function cleanup is called
-    connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be scanned
+    connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be choosable
     do{
         buffer[0] = '\0'; //TODO: understand why
         TCP_receive(&sock_client, buffer, BUF-1);
