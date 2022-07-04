@@ -1,8 +1,9 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "user_interface.h"
 #include "file_functions.h"
 #include "editing_functions.h"
+#include "network_functions.h"
+
 
 
 int main() {
@@ -46,6 +47,8 @@ int main() {
             save_database(database);
         }else if (chosen_option == 33) {
             load_database(&database);
+        }else if (chosen_option == 41) {
+            init_server();
         }
     }/*-1 is the return-value of "user_menu()" to close the programm*/
     close_database(&database);

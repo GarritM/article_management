@@ -176,6 +176,7 @@ int user_menu(struct database_type *database){
                "[1] output\n"
                "[2] edit\n"
                "[3] file\n"
+               "[4] network\n"
                "[0] close program\n");
         scanf("%i", &option_number);
 
@@ -329,6 +330,29 @@ int user_menu(struct database_type *database){
                 /*load*/
                 else if(option_number == 3){
                     return 33;
+                }
+                /*back*/
+                else if(option_number == 0){
+                    break;
+                }
+                /*invalid option*/
+                else {
+                    printf("There is no option %i.\n", option_number);
+                    option_number = 0;
+                }
+            }
+        }
+        /*network options*/
+        else if (option_number == 4) {
+            option_number = 0;
+            while (option_number == 0){
+                printf("[1] initialize server\n"
+                       "[0] back\n");
+                scanf("%i", &option_number);
+
+                /*establish a server*/
+                if(option_number == 1){
+                    return 41;
                 }
                 /*back*/
                 else if(option_number == 0){
