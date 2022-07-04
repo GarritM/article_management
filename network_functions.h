@@ -20,5 +20,6 @@ void TCP_receive(SOCKET *socket, char *data, size_t size);
 void cleanup(void);
 
 int init_server();
+int init_client();
 
 #endif //ARTICLE_MANAGEMENT_1_2_NETWORK_FUNCTIONS_H

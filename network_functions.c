@@ -93,12 +93,14 @@ void listen_socket(SOCKET *socket){
 /*accept connection-requests*/
 void accept_socket(SOCKET *socket, SOCKET *new_socket){
     struct sockaddr_in client;
-    // descriptor of connection, stored with too datastructures of the same size: sockaddr_in and sock_addr
-    // ; but sockaddr_in is more comfortable to handle while using ip connections
+    // descriptor of connection, stored with two datastructures of the same size and similar structure: sockaddr_in and sock_addr;
+    // but sockaddr_in is more comfortable to handle while using ip connections
     unsigned int len = sizeof(client);
     *new_socket = accept(*socket, (struct sockaddr*)&client, &len); // i dont understand why "&" in "&len"
     if(*new_socket == INVALID_SOCKET){
         exit_error("unable to accept");
+    }else{
+        printf("connection request received and accepted\n");
     }
 }
 /*establish a connection*/
@@ -120,6 +122,8 @@ void connect_socket(SOCKET *socket, char *serv_addr, unsigned short port) {
     server.sin_port = htons(port); //host to network-byte order
     if(connect(*socket, (struct sockaddr*)&server, sizeof(server)) < 0){
         exit_error("unable to establish connection with server");
+    }else{
+        printf("connection created successfully\n");
     }
 }
 /*send data via TCP*/
@@ -145,6 +149,8 @@ void cleanup(void){
     printf("Winsock cleanup finished\n");
 }
 
+//TODO debug: first receive/send output is weird
+
 /*initialize server*/
 int init_server() {
     init_winsock();
@@ -167,5 +173,27 @@ int init_server() {
     } while (strcmp(buffer, "quit\n") != 0);
     closesocket(sock2);
     closesocket(sock1);
+    return 0;
+}
+
+/*initialize client*/
+int init_client(){
+    init_winsock();
+
+    static SOCKET sock_client;
+    char *buffer = (char *) malloc(BUF);
+
+    sock_client = create_socket();
+    atexit(cleanup); //when process is closed, the function cleanup is called
+    connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be scanned
+    do{
+        buffer[0] = '\0'; //TODO: understand why
+        TCP_receive(&sock_client, buffer, BUF-1);
+        printf("message received: %s\n", buffer);
+        printf("send message: ");
+        fgets(buffer,BUF,stdin);
+        TCP_send(&sock_client, buffer, strlen(buffer));
+        }while(strcmp(buffer, "quit\n") != 0);
+    closesocket(sock_client);
     return 0;
 }

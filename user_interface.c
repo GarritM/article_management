@@ -347,12 +347,17 @@ int user_menu(struct database_type *database){
             option_number = 0;
             while (option_number == 0){
                 printf("[1] initialize server\n"
+                       "[2] initialize client\n"
                        "[0] back\n");
                 scanf("%i", &option_number);
 
                 /*establish a server*/
                 if(option_number == 1){
                     return 41;
+                }
+                /*establish a connection as client*/
+                if(option_number == 2){
+                    return 42;
                 }
                 /*back*/
                 else if(option_number == 0){

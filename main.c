@@ -49,8 +49,10 @@ int main() {
             load_database(&database);
         }else if (chosen_option == 41) {
             init_server();
+        }else if (chosen_option == 42) {
+            init_client();
         }
-    }/*-1 is the return-value of "user_menu()" to close the programm*/
+    }/*-1 is the return-value of "user_menu()" to close the program*/
     close_database(&database);
     printf("program closed at %s\n\n"
            "***********\n"
