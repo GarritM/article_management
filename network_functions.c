@@ -166,6 +166,7 @@ int init_server() {
     accept_socket(&sock1, &sock2);
     do {
         printf("send message: ");
+        fflush(stdin);
         fgets(buffer, BUF, stdin);
         TCP_send(&sock2, buffer, strlen(buffer));
         TCP_receive(&sock2, buffer, BUF - 1); // -1 so that its still zero-terminated I guess
@@ -191,6 +192,7 @@ int init_client(){
         TCP_receive(&sock_client, buffer, BUF-1);
         printf("message received: %s\n", buffer);
         printf("send message: ");
+        fflush(stdin);
         fgets(buffer,BUF,stdin);
         TCP_send(&sock_client, buffer, strlen(buffer));
         }while(strcmp(buffer, "quit\n") != 0);
