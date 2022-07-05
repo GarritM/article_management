@@ -192,7 +192,7 @@ void save_database(struct database_type database){
     FILE *db_save;
     if(strcmp(database.file_information->file_name, "<empty>") == 0){
         printf("Where do u want to save this file? Type in a path:\n");
-        scanf("%s",database.file_information->file_name); //TODO: filename, should be assembled so that the file is saved in the same place always
+        scanf("%s",database.file_information->file_name); //TODO: filename, should be assembled so that the file is saved in the same place always;
                                                           //      this makes it possible to display the files from which u can load
     }
     printf("saving Database in %s\n", database.file_information->file_name);
