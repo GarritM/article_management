@@ -3,11 +3,13 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "editing_functions.h"
 #include "file_functions.h"
 #include "user_interface.h"
 #define ART_NAME_LENGTH 100
+
 void change_article(database_type *database){
     int change_index;
     printf("Type in the index of the entry you want to change:\n");
@@ -34,7 +36,7 @@ void entry_article(struct database_type *database, int article_index) {
         entry_article_filled(1,&database->article_array[article_index]);
         printf("entry successful\n");
     }
-}
+} //TODO: when edited, closing functions should ask for save
 void delete_article(database_type *database){
     int delete_index;
     printf("Type in the index of the entry you want to delete:\n");
@@ -57,27 +59,28 @@ void entry_article_filled(int mode_of_filling, struct article_type *article) {
     article->filled = mode_of_filling;
 }
 int entry_article_name(database_type *database, int article_index) {
-    char name[ART_NAME_LENGTH], buffer[1000] = "";
+    char name[ART_NAME_LENGTH], buffer[1000] = "", dump;
     printf("name of the article:\n");
     fflush(stdin); //grants the stdin buffer to be empty
     if(fgets(buffer, ART_NAME_LENGTH, stdin) != 0){
         buffer[strcspn(buffer, "\n")] = 0; //"fgets()" also copys the '\n' (which we dont like) strcspn counts number of char until it hits "/n" or "/0" (latter by default)
         strcpy(name, buffer);
-    }else {
+    }
+    else {
         strcpy(name, "corrupted_article_name");
         printf("error: name couldn't be assigned to article_type\n");
         return -1;
     }
     no_space_for_strings(name);
-    int found_result = binary_search_article_in_range(database, name, 0, database->file_information->size);
-    if(found_result == -1) {
+    int search_result = binary_search_article_in_range(database, name, 0, database->file_information->size);
+    if(search_result == -1) {
         strcpy(database->article_array[article_index].name, name);
         return 0;
-    }else if(found_result >= 0){
+    }else if(search_result >= 0){
         printf("The name you entered already exists:\n");
         print_table_header();
-        printf("%i\t",found_result);
-        print_article(database->article_array[found_result]);
+        printf("%i\t", search_result);
+        print_article(database->article_array[search_result]);
         printf("\n");
         return -1;
 
