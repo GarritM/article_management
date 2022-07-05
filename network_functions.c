@@ -122,7 +122,7 @@ void TCP_receive(SOCKET *socket, char *data, size_t size){
 }
 /*"free" Winsock*/
 void cleanup(void){
-    WSACleanup();
+    WSACleanup(); //dont understand thus dont like it, counterpart to "WSAStartup()"
     printf("Winsock cleanup finished\n");
 }
 
