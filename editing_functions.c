@@ -7,7 +7,7 @@
 #include "editing_functions.h"
 #include "file_functions.h"
 #include "user_interface.h"
-
+#define ART_NAME_LENGTH 100
 void change_article(database_type *database){
     int change_index;
     printf("Type in the index of the entry you want to change:\n");
@@ -57,25 +57,17 @@ void entry_article_filled(int mode_of_filling, struct article_type *article) {
     article->filled = mode_of_filling;
 }
 int entry_article_name(database_type *database, int article_index) {
-    char name[100], buffer[100000] = "", dump;
+    char name[ART_NAME_LENGTH], buffer[1000] = "";
     printf("name of the article:\n");
-    //empty buffer, or else bad things might happen
-    do {
-        dump = getchar();
-    } while (dump != '\n' && dump != EOF);
-    //the real scanning; scans negation of set [\n]
-    if (scanf("%[^\n]", buffer)) { //TODO: Stackoverflow said this is the worst possible way to implement this, learn gets(); vulnerable to buffer overflow
-        buffer[99] = "\0";
+    fflush(stdin); //grants the stdin buffer to be empty
+    if(fgets(buffer, ART_NAME_LENGTH, stdin) != 0){
+        buffer[strcspn(buffer, "\n")] = 0; //"fgets()" also copys the '\n' (which we dont like) strcspn counts number of char until it hits "/n" or "/0" (latter by default)
         strcpy(name, buffer);
-    } else {
+    }else {
         strcpy(name, "corrupted_article_name");
         printf("error: name couldn't be assigned to article_type\n");
         return -1;
     }
-    //empty buffer again just for safety
-    do {
-        dump = getchar();
-    } while (dump != '\n' && dump != EOF);
     no_space_for_strings(name);
     int found_result = binary_search_article_in_range(database, name, 0, database->file_information->size);
     if(found_result == -1) {
