@@ -5,12 +5,17 @@
 #ifndef ARTICLE_MANAGEMENT_1_2_NETWORK_FUNCTIONS_H
 #define ARTICLE_MANAGEMENT_1_2_NETWORK_FUNCTIONS_H
 #include <winsock2.h>
-
+#ifdef _WIN32
+#define socket_type SOCKET
+#else
+#define socket int
+#endif
 /*evaluates error, returns error message*/
 int exit_error(char *error_message);
-
+#ifdef _WIN32
 int init_winsock();
-SOCKET create_socket();
+#endif
+socket_type create_socket();
 void bind_socket(SOCKET *sock, unsigned long address, unsigned short port);
 void listen_socket(SOCKET *socket);
 void accept_socket(SOCKET *socket, SOCKET *new_socket);
