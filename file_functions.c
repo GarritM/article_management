@@ -26,8 +26,6 @@ void initialize(){
     printf("Unix\n");
 #elif _WIN32
     printf("Win32\n");
-#elif _WIN64
-    printf("Win64\n");
 #endif
     printf("\n"
            "\n"
@@ -44,7 +42,11 @@ void initialize(){
             break;
         }
         if(dir_existence_check == 0){
+#ifdef _WIN32
             mkdir("Databases");
+#else
+            mkdir("Databasees", 7);
+#endif
         }
     }
 }
@@ -152,7 +154,7 @@ void load_database(struct database_type *database){
     }
     getcwd(directory_name, 1000);
     strcpy(&database->file_information->file_name, directory_name);
-#ifdef _WIN32 | _WIN64
+#ifdef _WIN32
     strcat(&database->file_information->file_name, "\\Databases\\");
 #endif
 #ifdef __unix
@@ -239,7 +241,7 @@ void close_database(struct database_type *database) {
 int grant_writing_rights(struct database_information_type *file_information) {
     struct stat file_attr;
     stat(file_information->file_name, &file_attr);
-#ifdef _WIN32 | _WIN64
+#ifdef _WIN32
     chmod(file_information->file_name, S_IWRITE | S_IREAD);
 #endif
 #ifdef __unix
@@ -251,7 +253,7 @@ int grant_writing_rights(struct database_information_type *file_information) {
 int revoke_writing_rights(struct database_information_type *file_information) {
     struct stat file_attr;
     stat(file_information->file_name, &file_attr);
-#ifdef _WIN32 | _WIN64
+#ifdef _WIN32
     chmod(file_information->file_name, S_IREAD);
 #endif
 #ifdef __unix

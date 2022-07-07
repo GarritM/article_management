@@ -2,7 +2,6 @@
 // Created by garri on 30.06.2022.
 //
 
-//TODO: before implementing this, make it portable for UNIX (this wont be fun)
 //TODO implement:
 //          copy-request
 //          synchronize
@@ -30,7 +29,7 @@
 #ifdef _WIN32
 #define socket_type SOCKET
 #else
-#define socket int
+#define socket_type int
 #endif
 
 #define BUF 1024
@@ -40,7 +39,7 @@ int exit_error(char *error_message){
 #ifdef _WIN32
     fprintf(stderr, "%s: %d\n", error_message, WSAGetLastError());
 #else
-    fprintf(stderr, "%s: %s\n", error_message, strer(errno));
+    fprintf(stderr, "%s: %s\n", error_message, strerror(errno));
 #endif
     return -1;
 }
@@ -178,13 +177,15 @@ void TCP_receive(socket_type *socket, char *data, size_t size){
 
 /*initialize server*/
 int init_server() {
+    #ifdef _WIN32
     init_winsock();
+    #endif
 
     socket_type sock1, sock2;
     char *buffer = (char *) malloc(BUF);
-    
+#ifdef _WIN32
     atexit(cleanup); //when process is closed, the function cleanup is called
-
+#endif
     sock1 = create_socket();
     bind_socket(&sock1, INADDR_ANY, 15000); //TODO: what happens when port 15000 is already used?
     listen_socket(&sock1);
@@ -197,20 +198,29 @@ int init_server() {
         TCP_receive(&sock2, buffer, BUF - 1); // -1 so that it's still zero-terminated I guess
         printf("message received: %s\n", buffer);
     } while (strcmp(buffer, "quit\n") != 0);
+    #ifdef _WIN32
     closesocket(sock2);
     closesocket(sock1);
+    #else
+    close(sock2);
+    close(sock1);
+    #endif
     return 0;
 }
 
 /*initialize client*/
 int init_client(){
+    #ifdef _WIN32
     init_winsock();
+    #endif
 
     static socket_type sock_client;
     char *buffer = (char *) malloc(BUF);
 
     sock_client = create_socket();
+    #ifdef _WIN32
     atexit(cleanup); //when process is closed, the function cleanup is called
+    #endif
     connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be choosable
     //TODO: Port 15000 is IANA registered. Use a Port between 49152-65535 (but also make sure it isn't already used by the host)
     do{
@@ -222,6 +232,10 @@ int init_client(){
         fgets(buffer,BUF,stdin);
         TCP_send(&sock_client, buffer, strlen(buffer));
         }while(strcmp(buffer, "quit\n") != 0);
+        #ifdef _WIN32
     closesocket(sock_client);
+    #else
+    close(sock_client);
+    #endif
     return 0;
 }
