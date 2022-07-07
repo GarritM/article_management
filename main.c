@@ -57,6 +57,6 @@ int main() {
     printf("program closed at %s\n\n"
            "***********\n"
            "~Good bye!~\n"
-           "***********\n", __TIMESTAMP__);
+           "***********\n", __TIMESTAMP__); // TODO: check __TIMESTAMP
     return 0;
 }
