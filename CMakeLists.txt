@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 project(article_management_1.2 C)
 
 set(CMAKE_C_STANDARD 99)
-if(IS_ABSOLUTE C:no)
+if(IS_ABSOLUTE C:xyz)
 link_libraries(ws2_32 wsock32)
 endif()
 

@@ -7,6 +7,8 @@
 
 #include "file_functions.h"
 
+#define ART_NAME_LENGTH 100
+
 void change_article();
 void delete_article();
 void entry_article();

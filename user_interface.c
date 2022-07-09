@@ -10,6 +10,7 @@
 #include "file_functions.h"
 #include "editing_functions.h"
 
+
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
 int ask_for_answer(){
     char answer = '0';
@@ -22,6 +23,33 @@ int ask_for_answer(){
     if(answer == 'n'){
         return 0;
     }
+}
+int ask_for_number(int *integer_addr){
+    *integer_addr = -1;
+    char buffer[2];
+    do{
+        fflush(stdin); //grants the stdin buffer to be empty
+        if(fgets(buffer, 2, stdin) != 0){
+            sscanf(buffer, "%i", integer_addr);
+        }else{
+            *integer_addr = -1;}
+    }while(integer_addr < 0);
+    return integer_addr;
+}
+void ask_for_string(char* string, int string_size){
+    char func_buffer[string_size];
+    memset(func_buffer, 0, string_size);
+    string = (char*) realloc(string, string_size);
+    memset(string, 0, string_size);
+
+    do{
+        fflush(stdin); //grants the stdin buffer to be empty
+        if(fgets(func_buffer, string_size, stdin) != 0){
+            strcpy(string, func_buffer);
+        }else{
+            memset(string, 0, string_size);
+            string[0] = '\0';}
+    }while(string[0] == '\0');
 }
 void printing_configuration(database_type *database){
     database->file_information->print_conf = 0;
@@ -178,7 +206,7 @@ int user_menu(struct database_type *database){
                "[3] file\n"
                "[4] network\n"
                "[0] close program\n");
-        scanf("%i", &option_number);
+        ask_for_number(&option_number);
 
         /*option output*/
         if (option_number == 1) {
@@ -191,7 +219,7 @@ int user_menu(struct database_type *database){
                        "[4] search and print one article by name\n"
                        "[9] configure printed parameters\n"
                        "[0] back\n");
-                scanf("%i", &option_number);
+                ask_for_number(&option_number);
 
                 /*unteroptionen für [1]output*/
 
@@ -236,7 +264,7 @@ int user_menu(struct database_type *database){
                        "[3] delete one entry\n"
                        "[4] sorting option\n"
                        "[0] back\n");
-                scanf("%i", &option_number);
+                ask_for_number(&option_number);
 
                 /*unteroptionen für edit [2]*/
 
@@ -263,7 +291,7 @@ int user_menu(struct database_type *database){
                                "[4] sort the database by editing date\n"
                                "[5] sort the database by creation date\n"
                                "[0] back\n");
-                        scanf("%i", &option_number);
+                        ask_for_number(&option_number);
 
                         /*submenu "[2]edit[4]sorting options"*/
 
@@ -317,7 +345,7 @@ int user_menu(struct database_type *database){
                        "[2] save this file\n"
                        "[3] load a file\n"
                        "[0] back\n");
-                scanf("%i", &option_number);
+                ask_for_number(&option_number);
 
                 /*create database*/
                 if(option_number == 1){
@@ -349,7 +377,7 @@ int user_menu(struct database_type *database){
                 printf("[1] initialize server\n"
                        "[2] initialize client\n"
                        "[0] back\n");
-                scanf("%i", &option_number);
+                ask_for_number(&option_number);
 
                 /*establish a server*/
                 if(option_number == 1){
@@ -382,3 +410,28 @@ int user_menu(struct database_type *database){
     }
     return 0;
 }/*Optionswahl durch user_innen, returned eine für jede option eindeutige nummer zurück, nämlich die aneinandergereihte Zahl der Wahlen*/
+
+int sub_menu_network_client(){
+    int option_number = 0;
+    while (option_number == 0) {
+        printf("Choose one of the following options:\n"
+               "[1] upload database to server\n"
+               //               "[2] edit\n"
+               //               "[3] file\n"
+               //               "[4] network\n"
+               "[0] end connection\n");
+        ask_for_number(&option_number);
+    }
+    if(option_number == 1){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+void server_answer(char* recv_buffer){
+    if(strcmp(recv_buffer, "0") == 0){
+        printf("Request accepted\n");
+    }else if(strcmp(recv_buffer, "-1") == 0){
+        printf("request denied\n");
+    }
+}

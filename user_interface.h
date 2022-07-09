@@ -6,6 +6,7 @@
 #define UNTITLED3_USER_INTERFACE_H
 
 int ask_for_answer();
+void ask_for_string();
 int get_index_most_expensive_article();
 int get_index_cheapest_article();
 void get_article_by_name();
@@ -18,4 +19,7 @@ void print_table_header();
 void print_complete_db();
 void printing_configuration();
 int user_menu();
+
+int sub_menu_network_client();
+void server_answer();
 #endif //UNTITLED3_USER_INTERFACE_H
