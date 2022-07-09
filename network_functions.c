@@ -3,16 +3,14 @@
 //
 
 //TODO implement:
-//          copy-request
-//          synchronize
-//          deleterequest
-//          entryrequest
-//          changerequest
+//          synchronize-download
+//          synchronize-upload
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include "user_interface.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -175,7 +173,7 @@ void TCP_receive(socket_type *socket, char *data, size_t size){
     }
 }
 
-/*initialize server*/
+/*run server*/
 int init_server() {
     #ifdef _WIN32
     init_winsock();
@@ -191,9 +189,11 @@ int init_server() {
     listen_socket(&sock1);
     accept_socket(&sock1, &sock2);
     do {
+        //TODO implement: synchronize, send_db,
         printf("send message: ");
         fflush(stdin);
         fgets(buffer, BUF, stdin);
+        buffer[strcspn(buffer,"\n")] = 0;
         TCP_send(&sock2, buffer, strlen(buffer));
         TCP_receive(&sock2, buffer, BUF - 1); // -1 so that it's still zero-terminated I guess
         printf("message received: %s\n", buffer);
@@ -215,6 +215,7 @@ int init_client(){
     #endif
 
     static socket_type sock_client;
+    char *string_addr;
     char *buffer = (char *) malloc(BUF);
 
     sock_client = create_socket();
@@ -223,15 +224,19 @@ int init_client(){
     #endif
     connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be choosable
     //TODO: Port 15000 is IANA registered. Use a Port between 49152-65535 (but also make sure it isn't already used by the host)
-    do{
-        buffer[0] = '\0'; //TODO: understand why
+        buffer[0] = '\0';
         TCP_receive(&sock_client, buffer, BUF-1);
-        printf("message received: %s\n", buffer);
-        printf("send message: ");
-        fflush(stdin);
-        fgets(buffer,BUF,stdin);
-        TCP_send(&sock_client, buffer, strlen(buffer));
-        }while(strcmp(buffer, "quit\n") != 0);
+        if(strcmp(buffer, "0") == 0){ //server sends a 0 to accept
+            server_answer(buffer); //TODO WARNING: probably a buffer overflow
+            do{
+                sprintf(buffer, "%i", sub_menu_network_client());
+                buffer[1] = '\0';
+                TCP_send(&sock_client, buffer, strlen(buffer));
+                buffer[0] = '\0';
+                TCP_receive(&sock_client, buffer, BUF-1);
+                server_answer(buffer);
+            }while(strcmp(buffer, "-1") != 0);
+        }
         #ifdef _WIN32
     closesocket(sock_client);
     #else

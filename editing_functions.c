@@ -8,7 +8,7 @@
 #include "editing_functions.h"
 #include "file_functions.h"
 #include "user_interface.h"
-#define ART_NAME_LENGTH 100
+
 
 void change_article(database_type *database){
     int change_index;
