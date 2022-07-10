@@ -375,7 +375,7 @@ int user_menu(struct database_type *database){
             option_number = 0;
             while (option_number == 0){
                 printf("[1] initialize server\n"
-                       "[2] initialize client\n"
+                       "[2] connect to server\n"
                        "[0] back\n");
                 ask_for_number(&option_number);
 
@@ -412,26 +412,28 @@ int user_menu(struct database_type *database){
 }/*Optionswahl durch user_innen, returned eine für jede option eindeutige nummer zurück, nämlich die aneinandergereihte Zahl der Wahlen*/
 
 int sub_menu_network_client(){
-    int option_number = 0;
-    while (option_number == 0) {
+    int option_number = -1;
+    do{
         printf("Choose one of the following options:\n"
                "[1] upload database to server\n"
-               //               "[2] edit\n"
-               //               "[3] file\n"
-               //               "[4] network\n"
+               "[2] request database from server\n"
                "[0] end connection\n");
         ask_for_number(&option_number);
-    }
-    if(option_number == 1){
-        return 1;
-    }else{
-        return 0;
-    }
+        if(option_number == 1){
+            return 1;
+        }else if(option_number == 2){
+            return 2;
+        }else if(option_number == 0){
+            return 0;
+        }
+    }while (option_number < 0 || option_number > 2);
 }
 void server_answer(char* recv_buffer){
     if(strcmp(recv_buffer, "0") == 0){
-        printf("Request accepted\n");
+        printf("request accepted\n");
     }else if(strcmp(recv_buffer, "-1") == 0){
-        printf("request denied\n");
+        printf("disconnect from server\n");
+    }else{
+        printf("something went wrong here");
     }
 }
