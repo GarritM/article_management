@@ -153,6 +153,7 @@ void TCP_send(socket_type *socket, char *data, size_t size){
         exit_error("error during sending the data occured");
     }
 }
+
 /*receive data via TCP*/
 void TCP_receive(socket_type *socket, char *data, size_t size){
 #ifdef _WIN32
@@ -172,7 +173,20 @@ void TCP_receive(socket_type *socket, char *data, size_t size){
         exit_error("error during receiving");
     }
 }
-
+int server_process(char* recv_buffer){
+    if(strcmp(recv_buffer, "0") == 0){
+        printf("client is disconnecting\n");
+        return 0;
+    }else if(strcmp(recv_buffer, "1") == 0){
+        //TODO: send db;
+        printf("db send\n");
+        return 1;
+    }else if(strcmp(recv_buffer, "2") == 0){
+        //TODO: upload recv db;
+        printf("db received\n");
+        return 2;
+    }
+}
 /*run server*/
 int init_server() {
     #ifdef _WIN32
@@ -187,19 +201,25 @@ int init_server() {
     sock1 = create_socket();
     bind_socket(&sock1, INADDR_ANY, 15000); //TODO: what happens when port 15000 is already used?
     listen_socket(&sock1);
+    while(1){
     accept_socket(&sock1, &sock2);
-    do {
-        //TODO implement: synchronize, send_db,
-        printf("send message: ");
-        fflush(stdin);
-        fgets(buffer, BUF, stdin);
-        buffer[strcspn(buffer,"\n")] = 0;
-        TCP_send(&sock2, buffer, strlen(buffer));
+    memset(buffer, 0, BUF-1);
+    buffer[0] = '0';
+    TCP_send(&sock2, buffer, strlen(buffer));
+    while(1){
         TCP_receive(&sock2, buffer, BUF - 1); // -1 so that it's still zero-terminated I guess
-        printf("message received: %s\n", buffer);
-    } while (strcmp(buffer, "quit\n") != 0);
+        sprintf(buffer, "%i", server_process(buffer));
+        if(strcmp(buffer,"0") == 0){
+            strcpy(buffer, "-1");
+            TCP_send(&sock2, buffer, strlen(buffer));
+            break;
+        }else{
+            buffer[0] = '0';
+            TCP_send(&sock2, buffer, strlen(buffer));
+        }
+    }
     #ifdef _WIN32
-    closesocket(sock2);
+    closesocket(sock2);}
     closesocket(sock1);
     #else
     close(sock2);
@@ -207,6 +227,7 @@ int init_server() {
     #endif
     return 0;
 }
+
 
 /*initialize client*/
 int init_client(){
@@ -224,18 +245,20 @@ int init_client(){
     #endif
     connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be choosable
     //TODO: Port 15000 is IANA registered. Use a Port between 49152-65535 (but also make sure it isn't already used by the host)
-        buffer[0] = '\0';
+    memset(buffer, 0, BUF-1);
         TCP_receive(&sock_client, buffer, BUF-1);
         if(strcmp(buffer, "0") == 0){ //server sends a 0 to accept
             server_answer(buffer); //TODO WARNING: probably a buffer overflow
             do{
+                memset(buffer, 0, BUF-1);
                 sprintf(buffer, "%i", sub_menu_network_client());
-                buffer[1] = '\0';
                 TCP_send(&sock_client, buffer, strlen(buffer));
-                buffer[0] = '\0';
+                memset(buffer,0,BUF-1);
                 TCP_receive(&sock_client, buffer, BUF-1);
                 server_answer(buffer);
             }while(strcmp(buffer, "-1") != 0);
+        }else{
+            printf("the server rejects u\n");
         }
         #ifdef _WIN32
     closesocket(sock_client);
