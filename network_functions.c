@@ -195,26 +195,18 @@ int init_server(database_type *database) {
     sock1 = create_socket();
     bind_socket(&sock1, INADDR_ANY, 15000); //TODO: what happens when port 15000 is already used?
     listen_socket(&sock1);
-    while (1) {
+
+    int cont_server = 1;
+    while (cont_server == 1) {
         accept_socket(&sock1, &sock2);
-        TCP_send(&sock2, "0", BUF-1);
-        while (1) {
-            //TODO: implement way to close server?
-            memset(buffer, 0, BUF);
-            TCP_receive(&sock2, buffer, BUF - 1); // -1 because index_size needed here (but why not implemented directly into the function?
-            if (strcmp(buffer, "0") == 0) {
-                printf("client is disconnecting\n");
-                break;
-            } else {
-                server_process(sock2, buffer, database);
-                memset(buffer, 0, BUF);
-            }
-        }
+        server_process(&sock2, buffer, database);
 #ifdef _WIN32
         closesocket(sock2);
 #else
         close(sock2);
 #endif
+        printf("do u want to answer another client-request (y/n): ");
+        cont_server = ask_for_answer();
     }
     closesocket(sock1);
 #ifndef _WIN32
@@ -233,20 +225,18 @@ int init_client(database_type *database){
     char *string_addr;
     char *buffer = (char *) malloc(BUF);
 
+    /*establishing connection*/
     sock_client = create_socket();
     #ifdef _WIN32
     atexit(cleanup); //when process is closed, the function cleanup is called
     #endif
     connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be choosable
     //TODO: Port 15000 is IANA registered. Use a Port between 49152-65535 (but also make sure it isn't already used by the host)
-    memset(buffer, 0, BUF-1);
-    TCP_receive(&sock_client, buffer, BUF-1);
-        if(strcmp(buffer, "0") == 0){ //server sends a 0 to accept
-            printf("server accepted the connection\n");
-            client_process(&sock_client, &buffer, database);
-        }else{
-            printf("the server rejects u\n");
-        }
+
+    /*when connection is established*/
+    client_process(&sock_client, buffer, database);
+
+    /*when disconnect*/
         #ifdef _WIN32
     closesocket(sock_client);
     #else
@@ -256,33 +246,52 @@ int init_client(database_type *database){
 }
 
 int server_process(socket_type *sock2,char* buffer, database_type *database){
-    if(strcmp(buffer, "1") == 0){
-        printf("client want to upload db\n");
-        TCP_send(&sock2, "1", BUF-1);
-        recv_db_via_tcp(&sock2, database, BUF-1);
-        return 1;
-    }else if(strcmp(buffer, "2") == 0){
-        //TODO: upload recv db;
-        printf("db received\n");
-        return 2;
+    while (1) {
+        //TODO: implement way to close server?
+        memset(buffer, 0, BUF);
+        TCP_receive(sock2, buffer, BUF - 1); // -1 because index_size needed here (but why not implemented directly into the function?
+        if (strcmp(buffer, "0") == 0) {
+            printf("client is disconnecting\n");
+            break;
+        } else {
+            if(strcmp(buffer, "1") == 0){
+                printf("client want to upload db\n");
+                TCP_send(sock2, "1", BUF-1);
+                recv_db_via_tcp(sock2, database, BUF-1);
+                return 1;
+            }else if(strcmp(buffer, "2") == 0){
+                //TODO: upload recv db;
+                printf("db received\n");
+                return 2;
+            }
+        }
     }
 }
 int client_process(socket_type *sock_client, char* buffer, database_type *database){
     char data[BUF];
-    int chosen_opt_net_sub = sub_menu_network_client();
-    if(chosen_opt_net_sub == 0){
-        TCP_send(sock_client, "0", BUF-1);
-        return 0;
-    }if(chosen_opt_net_sub == 1) {
-        printf("try to upload database\n");
-        TCP_send(sock_client, "1", BUF-1);
-        TCP_receive(sock_client, data, BUF-1); //TODO: check serverside
-        if(strcmp(data, "1")==0){
-            printf("Server is ready to receive the database\n");
-            sent_db_via_tcp(&sock_client, &database, BUF-1);
+    while(1) {
+        int chosen_opt_net_sub = sub_menu_network_client();
+        if (chosen_opt_net_sub == 0) {
+
+        /*request to end connection*/
+            TCP_send(sock_client, "0", BUF - 1);
+            break;
         }
-        return 1;
-    }else{}
+        /*request to upload database*/
+        if (chosen_opt_net_sub == 1) {
+            TCP_send(sock_client, "1", BUF - 1);
+            printf("request to upload database\n");
+            TCP_receive(sock_client, data, BUF - 1);//check if server wants to receive a database (1 means yes) //TODO: check serverside
+            if (strcmp(data, "1") == 0) {
+                printf("Server is ready to receive the database\n");
+                sent_db_via_tcp(sock_client, database, BUF - 1);
+            } else {
+            }
+        /*request to download database*/
+        }else if(chosen_opt_net_sub == 2){
+
+        }
+    }
     return 0;
 }
 int sub_menu_network_client(){
@@ -317,14 +326,21 @@ int sent_db_via_tcp(socket_type *sock, database_type *db, size_t size){
     if(sizeof(database_information_type)+5 > (size)){ //5 extra bytes needed for "encode_database_info"
         return -1;//TODO: communicate server to intterupt process
     }else{
-        char data[size];
+        char data[BUF];
         encode_database_info(data, db->file_information);
         TCP_send(sock, data, strlen(data));
         for(int i = 0; i < db->file_information->size; i++){
-            memset(data, 0, strlen(data));
-            encode_article_data(data, &db->article_array[i]);
-            data[strcspn(data, "\n")]= '\0';
-            TCP_send(sock,data, strlen(data));
+            memset(data, 0, BUF);
+            TCP_receive(sock, data, BUF-1);
+            if (strcmp(data, "received") == 0) {
+                memset(data, 0, strlen(data));
+                encode_article_data(data, db->article_array[i]);
+                data[strcspn(data, "\n")] = '\0';
+                TCP_send(sock, data, strlen(data));
+                printf("sent article no.: %i\n", i);
+            }else{
+                break;
+            }
         }
         TCP_send(sock, "end", size);
         return 0;
@@ -332,14 +348,16 @@ int sent_db_via_tcp(socket_type *sock, database_type *db, size_t size){
 }
 int recv_db_via_tcp(socket_type *sock, database_type *database, size_t size) {
     char data[BUF];
-    database_information_type rcvd_db_info;
     TCP_receive(sock, data, BUF - 1);
-
-    if (decode_file_info(&data, &database) == 0) {
+    if (decode_file_info(data, database) == 0) {
+        database->article_array = create_article_array(database->file_information->size);
         for (int i = 0; i < database->file_information->size; i++) {
+            memset(data, 0,BUF-1);
+            TCP_send(sock,"received", BUF-1);
             memset(data, 0, BUF-1);
             TCP_receive(sock, data, BUF-1);
             decode_article_data(data, &database->article_array[i]);
+            printf("received and decoded article %i\n", i);
         }
         TCP_receive(sock, data, 3);
         if(strcmp(data, "end")== 0){
