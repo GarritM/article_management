@@ -5,20 +5,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <io.h>
 #include "editing_functions.h"
 #include "file_functions.h"
 #include "user_interface.h"
 
 
 void change_article(database_type *database){
-    int change_index;
-    printf("Type in the index of the entry you want to change:\n");
-    scanf("%i", &change_index);
+    int change_index = -1;
+    char buffer[5];
+    while(change_index == -1){
+        printf("Type in the index of the entry you want to change: ");
+        fflush(stdout);
+        fgets(buffer, 5, stdin);
+        buffer[strcspn(buffer, "\n")] = '\0';
+        change_index = atoi(&buffer);}
     entry_article(*database, change_index);
     database->file_information->sorting_mode = unsorted;
 }
 void entry_article(struct database_type *database, int article_index) {
-    if(database->article_array[article_index].filled == 0){                             //if process is interrupted it shows database.article_array.filling = -1, while keeping new, and edited distinguished
+    if(database->article_array[article_index].filled == 0){                             //if process is interrupted it shows database.article_array.filling = -1, while keeping "new" and "edited" distinguished
         entry_article_filled(-1,&database->article_array[article_index]);
     }else if(database->article_array[article_index].filled == 1){
         entry_article_filled(-2,&database->article_array[article_index]);
@@ -38,9 +44,15 @@ void entry_article(struct database_type *database, int article_index) {
     }
 } //TODO: when edited, closing functions should ask for save
 void delete_article(database_type *database){
-    int delete_index;
-    printf("Type in the index of the entry you want to delete:\n");
-    scanf("%i", &delete_index);
+    int delete_index = -1;
+    char buffer[5];
+    while(delete_index == -1){
+        printf("Type in the index of the entry you want to delete: ");
+        fflush(stdout);
+        fgets(buffer, 5, stdin);
+        buffer[strcspn(buffer, "\n")] = '\0';
+        delete_index = atoi(&buffer);
+    }
     for(int i=delete_index;i<database->file_information->size;i++){
         database->article_array[i]=database->article_array[i+1];
     }
@@ -50,20 +62,26 @@ void delete_article(database_type *database){
 }
 
 void entry_article_amount(struct article_type *article) {
-    int amount;
-    printf("amount:\n");
-    scanf("%d", &amount);
-    article->amount = amount;
+    int amount = -1;
+    char buffer[5], dump;
+    while(amount == -1){
+        printf("amount: ");
+        fflush(stdout);
+        fgets(buffer, 5, stdin);
+        buffer[strcspn(buffer, "\n")] = '\0';
+        amount = atoi(&buffer);
+    article->amount = amount;}
 }
 void entry_article_filled(int mode_of_filling, struct article_type *article) {
     article->filled = mode_of_filling;
 }
 int entry_article_name(database_type *database, int article_index) {
-    char name[ART_NAME_LENGTH], buffer[1000] = "", dump;
-    printf("name of the article:\n");
-    fflush(stdin); //grants the stdin buffer to be empty
+    char name[ART_NAME_LENGTH], buffer[100] = "";
+    int dump;
+    printf("name of the article: ");
+    fflush(stdout);
     if(fgets(buffer, ART_NAME_LENGTH, stdin) != 0){
-        buffer[strcspn(buffer, "\n")] = 0; //"fgets()" also copys the '\n' (which we dont like) strcspn counts number of char until it hits "/n" or "/0" (latter by default)
+        buffer[strcspn(buffer, "\n")] = '\0'; //"fgets()" also copys the '\n' (which we dont like) strcspn counts number of char until it hits "/n" or "/0" (latter by default)
         strcpy(name, buffer);
     }
     else {
@@ -89,9 +107,15 @@ int entry_article_name(database_type *database, int article_index) {
 }
 void entry_article_price(struct article_type *article) {
     double price;
-    printf("price:\n");
-    scanf("%lf", &price);
-    article->price = price;
+    char buffer[10];
+    int *dump_i[10];
+    char *dump_c;
+    memset(&article->price, 0, sizeof(article->price));
+    printf("price: ");
+    fflush(stdout);
+    fgets(buffer, 10, stdin);
+    buffer[strcspn(buffer, "\n")] = '\0';
+    article->price = strtod(buffer, &dump_i);
 }
 void entry_article_price_category(struct article_type *article) {
     if (article->filled == 0) {

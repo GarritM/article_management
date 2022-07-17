@@ -6,6 +6,9 @@
 #define UNTITLED3_FILE_FUNCTIONS_H
 #include <time.h>
 
+
+#define ART_NAME_LENGTH 100
+
 typedef struct article_type { //TODO implement/change: article_type should be a list (when there are many many articles its maybe hard to reallocate for every new element)
     char name[100];
     double price, price_total;
@@ -52,6 +55,12 @@ void reduce_article_array();
 void load_database();
 void save_database();
 void close_database();
+
+int decode_file_info();
+int decode_article_data();
+int encode_article_data();
+int encode_database_info();
+
 
 void file_stat();
 int grant_writing_rights();

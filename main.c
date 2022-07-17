@@ -5,7 +5,7 @@
 #include "network_functions.h"
 
 
-
+#define ART_NAME_LENGTH 100
 int main() {
 
     database_type database = database_creation();
@@ -48,9 +48,9 @@ int main() {
         }else if (chosen_option == 33) {
             load_database(&database);
         }else if (chosen_option == 41) {
-            init_server();
+            init_server(&database);
         }else if (chosen_option == 42) {
-            init_client();
+            init_client(&database);
         }
     }/*-1 is the return-value of "user_menu()" to close the program*/
     close_database(&database);
