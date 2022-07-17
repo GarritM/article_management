@@ -260,8 +260,8 @@ int server_process(socket_type *sock2,char* buffer, database_type *database){
                 recv_db_via_tcp(sock2, database, BUF-1);
                 return 1;
             }else if(strcmp(buffer, "2") == 0){
-                //TODO: upload recv db;
-                printf("db received\n");
+                printf("client want to download database\n");
+                sent_db_via_tcp(sock2, database, BUF - 1);
                 return 2;
             }
         }
@@ -281,7 +281,7 @@ int client_process(socket_type *sock_client, char* buffer, database_type *databa
         if (chosen_opt_net_sub == 1) {
             TCP_send(sock_client, "1", BUF - 1);
             printf("request to upload database\n");
-            TCP_receive(sock_client, data, BUF - 1);//check if server wants to receive a database (1 means yes) //TODO: check serverside
+            TCP_receive(sock_client, data, BUF - 1);//check if server wants to receive a database (1 means yes)
             if (strcmp(data, "1") == 0) {
                 printf("Server is ready to receive the database\n");
                 sent_db_via_tcp(sock_client, database, BUF - 1);
@@ -289,7 +289,9 @@ int client_process(socket_type *sock_client, char* buffer, database_type *databa
             }
         /*request to download database*/
         }else if(chosen_opt_net_sub == 2){
-
+            TCP_send(sock_client, "2", BUF - 1);
+            printf("request to download database\n");
+            recv_db_via_tcp(sock_client,database,BUF-1);
         }
     }
     return 0;
@@ -339,6 +341,7 @@ int sent_db_via_tcp(socket_type *sock, database_type *db, size_t size){
                 TCP_send(sock, data, strlen(data));
                 printf("sent article no.: %i\n", i);
             }else{
+                printf("receiving of the sent data wasn't confirmed\n");
                 break;
             }
         }
