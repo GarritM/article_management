@@ -35,18 +35,21 @@ void initialize(){
     DIR *directory_pointer;
     struct dirent *entry_pointer;
     int dir_existence_check = 0;
-    if((directory_pointer = opendir(".."))){
+    if((directory_pointer = opendir(".\\"))){ //TODO: change it to a fixed folder in "Documents" (for UNIX and Windows)
         while((entry_pointer = readdir(directory_pointer))){
-            if(strcmp(entry_pointer->d_name, "Databases") == 0)
+            if(strcmp(entry_pointer->d_name, "Databases") == 0){
+                printf("folder Databases found\n");
                 dir_existence_check = 1;
-            break;
+                break;
+            }
         }
         if(dir_existence_check == 0){
 #ifdef _WIN32
             mkdir("Databases");
 #else
-            mkdir("Databasees", 7);
+            mkdir("Databases", 7);
 #endif
+            printf("folder Databases has been created\n");
         }
     }
 }
@@ -140,7 +143,7 @@ int decode_file_info(char *data, database_type *database){
     database->file_information->size = atoi(strtok(data,";"));
     database->file_information->sorting_mode = atoi(strtok(NULL,";"));
     database->file_information->print_conf = atoi(strtok(NULL,";"));
-    database->article_array = create_article_array(database->file_information->size);
+
     return 0;
 }
 int decode_article_data(char* data, article_type* article){
@@ -190,7 +193,6 @@ void load_database(struct database_type *database){
         strcpy(&database->file_information->file_name, file_name_buffer);
     }
     printf("Which of the following files do u want to open:\n"); //TODO: exclude possibility of empty folder
-
     while((entry_pointer = readdir(directory_pointer))){
         if(strcmp(entry_pointer->d_name,".")!=0 && strcmp(entry_pointer->d_name, ".."))
         printf("%s\n",entry_pointer->d_name);
@@ -217,6 +219,7 @@ void load_database(struct database_type *database){
     }else{
         fscanf(db_read, "%s", line_buffer);
         decode_file_info(line_buffer, database);
+        database->article_array = create_article_array(database->file_information->size);
         for(int i = 0; i<database->file_information->size;i++){
             fscanf(db_read, "%s", line_buffer); //wieso nicht "&line_buffer"?
             decode_article_data(line_buffer, &database->article_array[i]);
