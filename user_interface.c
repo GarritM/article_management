@@ -13,9 +13,12 @@
 
 const char* price_c_names[6] = { "none", "gratis", "cheap", "normal", "expensive", "luxurious"};
 int ask_for_answer(){
-    char answer = '0';
+    char answer = '\0';
+    char buffer[2];
     do{
-        scanf("%c", &answer);
+        fgets(buffer, 2, stdin);
+        buffer[1] = '\0';
+        answer = buffer[0];
     }while(answer != 'y'&& answer !='n');
     if(answer == 'y'){
         return 1;
@@ -27,9 +30,11 @@ int ask_for_answer(){
 int ask_for_number(int *integer_addr){
     *integer_addr = -1;
     char buffer[2];
+    int dump;
     do{
-        fflush(stdin); //grants the stdin buffer to be empty
         if(fgets(buffer, 2, stdin) != 0){
+            buffer[1] = '\0';
+    while((dump = getchar()) != '\n' && dump != EOF);//grants the stdin buffer to be empty
             sscanf(buffer, "%i", integer_addr);
         }else{
             *integer_addr = -1;}
@@ -45,6 +50,7 @@ void ask_for_string(char* string, int string_size){
     do{
         fflush(stdin); //grants the stdin buffer to be empty
         if(fgets(func_buffer, string_size, stdin) != 0){
+            func_buffer[strcspn(func_buffer, "\0")] = '\0';
             strcpy(string, func_buffer);
         }else{
             memset(string, 0, string_size);
@@ -52,6 +58,7 @@ void ask_for_string(char* string, int string_size){
     }while(string[0] == '\0');
 }
 void printing_configuration(database_type *database){
+    //TODO: iterate via bit-shift
     database->file_information->print_conf = 0;
     printf("Do you want to output...\n");
     printf("...the name? (y/n)\n");
@@ -92,9 +99,10 @@ void print_article(struct article_type article, unsigned int p_conf) {
         printf("%02d.%02d.%02d %2d:%2d:%2d   ", time_created.tm_mday, time_created.tm_mon + 1, time_created.tm_year + 1900,
                time_created.tm_hour, time_created.tm_min, time_created.tm_sec);
     }if (p_conf & 256) {
-        printf("%02d.%02d.%02d %2d:%2d:%2d\n",time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900,
+        printf("%02d.%02d.%02d %2d:%2d:%2d",time_edit.tm_mday,time_edit.tm_mon + 1,time_edit.tm_year+1900,
                time_edit.tm_hour, time_edit.tm_min, time_edit.tm_sec);
     }
+    printf("\n");
 }
 void print_most_expensive_article(struct database_type *database){
     print_table_header();
@@ -162,9 +170,14 @@ void get_article_by_name(struct database_type *database){
         quicksort_name(database,0,database->file_information->size-1);
         printf("Be aware, that the database has been sorted alphabetically.\n");
     }
-    char searched_article[100];
-    printf("Type in the name of the article you are searching:\n");
-    scanf("%s", &searched_article);
+    char searched_article[ART_NAME_LENGTH];
+    char buffer[ART_NAME_LENGTH];
+    printf("Type in the name of the article you are searching: ");
+    fflush(stdout);
+    if(fgets(buffer, ART_NAME_LENGTH, stdin) != 0){
+        buffer[strcspn(buffer, "\n")] = '\0'; //"fgets()" also copys the '\n' (which we dont like) strcspn counts number of char until it hits "/n" or "/0" (latter by default)
+        strcpy(searched_article, buffer);
+    }
     int found_result = binary_search_article_in_range(database, searched_article, 0, database->file_information->size-1);
     if(found_result >= 0) {
         print_table_header(database->file_information->print_conf);
@@ -411,29 +424,4 @@ int user_menu(struct database_type *database){
     return 0;
 }/*Optionswahl durch user_innen, returned eine für jede option eindeutige nummer zurück, nämlich die aneinandergereihte Zahl der Wahlen*/
 
-int sub_menu_network_client(){
-    int option_number = -1;
-    do{
-        printf("Choose one of the following options:\n"
-               "[1] upload database to server\n"
-               "[2] request database from server\n"
-               "[0] end connection\n");
-        ask_for_number(&option_number);
-        if(option_number == 1){
-            return 1;
-        }else if(option_number == 2){
-            return 2;
-        }else if(option_number == 0){
-            return 0;
-        }
-    }while (option_number < 0 || option_number > 2);
-}
-void server_answer(char* recv_buffer){
-    if(strcmp(recv_buffer, "0") == 0){
-        printf("request accepted\n");
-    }else if(strcmp(recv_buffer, "-1") == 0){
-        printf("disconnect from server\n");
-    }else{
-        printf("something went wrong here");
-    }
-}
+
