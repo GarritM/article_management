@@ -11,6 +11,7 @@
 #include <string.h>
 #include <errno.h>
 #include "user_interface.h"
+#include "file_functions.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -94,21 +95,21 @@ void bind_socket(socket_type *sock, unsigned long address, unsigned short port){
         printf("socket is bind\n");
     }
 }
-/*set socket to listening*/
-void listen_socket(socket_type *socket){
-    if(listen(*socket, 5) == -1){ //second parameter is the maximum amount of connection-requests that are queued up
-        exit_error("unable to set socket to listening");
+/*set sock to listening*/
+void listen_socket(socket_type *sock){
+    if(listen(*sock, 5) == -1){ //second parameter is the maximum amount of connection-requests that are queued up
+        exit_error("unable to set sock to listening");
     }else{
-        printf("socket is listening\n");
+        printf("sock is listening\n");
     }
 }
 /*accept connection-requests*/
-void accept_socket(socket_type *socket, socket_type *new_socket){
+void accept_socket(socket_type *sock, socket_type *new_socket){
     struct sockaddr_in client;
     // descriptor of connection, stored with two datastructures of the same size and similar structure: sockaddr_in and sock_addr;
     // but sockaddr_in is more comfortable to handle while using ip connections
-    unsigned int len = sizeof(client);
-    *new_socket = accept(*socket, (struct sockaddr*)&client, &len); // i dont understand why "&" in "&len"
+    int len = sizeof(client);
+    *new_socket = accept(*sock, (struct sockaddr*)&client, &len);
 #ifdef _WIN32
     if(*new_socket == INVALID_SOCKET){
 #else
@@ -144,28 +145,28 @@ void connect_socket(socket_type *socket, char *serv_addr, unsigned short port) {
     }
 }
 /*send data via TCP*/
-void TCP_send(socket_type *socket, char *data, size_t size){
+void TCP_send(socket_type *sock, char *data, size_t size){
 #ifdef _WIN32
-    if(send(*socket, data, size, 0) == SOCKET_ERROR){      //TODO: implement correction code;
+    if(send(*sock, data, size, 0) == SOCKET_ERROR){      //TODO: implement correction code;
 #else
-        if(send(*socket, data, size, 0) < 0){
+        if(send(*sock, data, size, 0) < 0){
 #endif
         exit_error("error during sending the data occured");
     }
 }
 
 /*receive data via TCP*/
-void TCP_receive(socket_type *socket, char *data, size_t size){
+void TCP_receive(socket_type *sock, char *data, size_t size){
 #ifdef _WIN32
     int len;
 #else
     unsigned int len;
 #endif
-    len = recv(*socket, data, size, 0); // "0" means recv behaves like "read()"
+    len = recv(*sock, data, size, 0); // last argument "0" means recv behaves like "read()"
 #ifdef _WIN32
     if(len>0 || len != SOCKET_ERROR){
 #else
-        if(len>0 || len != -1){
+        if(len>-1){
 #endif
         data[len] = '\0';
         }
@@ -173,22 +174,15 @@ void TCP_receive(socket_type *socket, char *data, size_t size){
         exit_error("error during receiving");
     }
 }
-int server_process(char* recv_buffer){
-    if(strcmp(recv_buffer, "0") == 0){
-        printf("client is disconnecting\n");
-        return 0;
-    }else if(strcmp(recv_buffer, "1") == 0){
-        //TODO: send db;
-        printf("db send\n");
-        return 1;
-    }else if(strcmp(recv_buffer, "2") == 0){
-        //TODO: upload recv db;
-        printf("db received\n");
-        return 2;
-    }
-}
+
+int client_process();
+int server_process();
+int sent_db_via_tcp();
+void server_answer();
+int recv_db_via_tcp();
+
 /*run server*/
-int init_server() {
+int init_server(database_type *database) {
     #ifdef _WIN32
     init_winsock();
     #endif
@@ -201,36 +195,36 @@ int init_server() {
     sock1 = create_socket();
     bind_socket(&sock1, INADDR_ANY, 15000); //TODO: what happens when port 15000 is already used?
     listen_socket(&sock1);
-    while(1){
-    accept_socket(&sock1, &sock2);
-    memset(buffer, 0, BUF-1);
-    buffer[0] = '0';
-    TCP_send(&sock2, buffer, strlen(buffer));
-    while(1){
-        TCP_receive(&sock2, buffer, BUF - 1); // -1 so that it's still zero-terminated I guess
-        sprintf(buffer, "%i", server_process(buffer));
-        if(strcmp(buffer,"0") == 0){
-            strcpy(buffer, "-1");
-            TCP_send(&sock2, buffer, strlen(buffer));
-            break;
-        }else{
-            buffer[0] = '0';
-            TCP_send(&sock2, buffer, strlen(buffer));
+    while (1) {
+        accept_socket(&sock1, &sock2);
+        TCP_send(&sock2, "0", BUF-1);
+        while (1) {
+            //TODO: implement way to close server?
+            memset(buffer, 0, BUF);
+            TCP_receive(&sock2, buffer, BUF - 1); // -1 because index_size needed here (but why not implemented directly into the function?
+            if (strcmp(buffer, "0") == 0) {
+                printf("client is disconnecting\n");
+                break;
+            } else {
+                server_process(sock2, buffer, database);
+                memset(buffer, 0, BUF);
+            }
         }
+#ifdef _WIN32
+        closesocket(sock2);
+#else
+        close(sock2);
+#endif
     }
-    #ifdef _WIN32
-    closesocket(sock2);}
     closesocket(sock1);
-    #else
-    close(sock2);
+#ifndef _WIN32
     close(sock1);
-    #endif
+#endif
     return 0;
 }
 
-
 /*initialize client*/
-int init_client(){
+int init_client(database_type *database){
     #ifdef _WIN32
     init_winsock();
     #endif
@@ -246,17 +240,10 @@ int init_client(){
     connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be choosable
     //TODO: Port 15000 is IANA registered. Use a Port between 49152-65535 (but also make sure it isn't already used by the host)
     memset(buffer, 0, BUF-1);
-        TCP_receive(&sock_client, buffer, BUF-1);
+    TCP_receive(&sock_client, buffer, BUF-1);
         if(strcmp(buffer, "0") == 0){ //server sends a 0 to accept
-            server_answer(buffer); //TODO WARNING: probably a buffer overflow
-            do{
-                memset(buffer, 0, BUF-1);
-                sprintf(buffer, "%i", sub_menu_network_client());
-                TCP_send(&sock_client, buffer, strlen(buffer));
-                memset(buffer,0,BUF-1);
-                TCP_receive(&sock_client, buffer, BUF-1);
-                server_answer(buffer);
-            }while(strcmp(buffer, "-1") != 0);
+            printf("server accepted the connection\n");
+            client_process(&sock_client, &buffer, database);
         }else{
             printf("the server rejects u\n");
         }
@@ -266,4 +253,106 @@ int init_client(){
     close(sock_client);
     #endif
     return 0;
+}
+
+int server_process(socket_type *sock2,char* buffer, database_type *database){
+    if(strcmp(buffer, "1") == 0){
+        printf("client want to upload db\n");
+        TCP_send(&sock2, "1", BUF-1);
+        recv_db_via_tcp(&sock2, database, BUF-1);
+        return 1;
+    }else if(strcmp(buffer, "2") == 0){
+        //TODO: upload recv db;
+        printf("db received\n");
+        return 2;
+    }
+}
+int client_process(socket_type *sock_client, char* buffer, database_type *database){
+    char data[BUF];
+    int chosen_opt_net_sub = sub_menu_network_client();
+    if(chosen_opt_net_sub == 0){
+        TCP_send(sock_client, "0", BUF-1);
+        return 0;
+    }if(chosen_opt_net_sub == 1) {
+        printf("try to upload database\n");
+        TCP_send(sock_client, "1", BUF-1);
+        TCP_receive(sock_client, data, BUF-1); //TODO: check serverside
+        if(strcmp(data, "1")==0){
+            printf("Server is ready to receive the database\n");
+            sent_db_via_tcp(&sock_client, &database, BUF-1);
+        }
+        return 1;
+    }else{}
+    return 0;
+}
+int sub_menu_network_client(){
+    int option_number = -1;
+    do{
+        printf("Choose one of the following options:\n"
+               "[1] upload database to server\n"
+               "[2] request database from server\n"
+               "[0] end connection\n");
+        ask_for_number(&option_number);
+        if(option_number == 1){
+            return 1;
+        }else if(option_number == 2){
+            return 2;
+        }else if(option_number == 0){
+            return 0;
+        }
+    }while (option_number < 0 || option_number > 2);
+}
+void server_answer(char* recv_buffer){
+    if(strcmp(recv_buffer, "0") == 0){
+        printf("request accepted\n");
+    }else if(strcmp(recv_buffer, "-1") == 0){
+        printf("disconnect from server\n");
+    }else{
+        printf("something went wrong here");
+    }
+}
+
+
+int sent_db_via_tcp(socket_type *sock, database_type *db, size_t size){
+    if(sizeof(database_information_type)+5 > (size)){ //5 extra bytes needed for "encode_database_info"
+        return -1;//TODO: communicate server to intterupt process
+    }else{
+        char data[size];
+        encode_database_info(data, db->file_information);
+        TCP_send(sock, data, strlen(data));
+        for(int i = 0; i < db->file_information->size; i++){
+            memset(data, 0, strlen(data));
+            encode_article_data(data, &db->article_array[i]);
+            data[strcspn(data, "\n")]= '\0';
+            TCP_send(sock,data, strlen(data));
+        }
+        TCP_send(sock, "end", size);
+        return 0;
+    }
+}
+int recv_db_via_tcp(socket_type *sock, database_type *database, size_t size) {
+    char data[BUF];
+    database_information_type rcvd_db_info;
+    TCP_receive(sock, data, BUF - 1);
+
+    if (decode_file_info(&data, &database) == 0) {
+        for (int i = 0; i < database->file_information->size; i++) {
+            memset(data, 0, BUF-1);
+            TCP_receive(sock, data, BUF-1);
+            decode_article_data(data, &database->article_array[i]);
+        }
+        TCP_receive(sock, data, 3);
+        if(strcmp(data, "end")== 0){
+            return 0;
+        }else{
+            printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                   "sth. went wrong while receiving the database\n"
+                   "the database might be corrupted\n"
+                   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+            return -1;
+        }
+    } else {
+        printf("encoding of file_information failed\n");
+        return -1;
+    }
 }
