@@ -9,7 +9,9 @@
 
 #define ART_NAME_LENGTH 100
 
-typedef struct article_type { //TODO implement/change: article_type should be a list (when there are many many articles its maybe hard to reallocate for every new element)
+typedef struct article_type { //TODO implement/change: there could be several list pointers, for different ways to sort
+                              // the db (but it requires a lot of work), but it would be cool
+
     char name[100];
     double price, price_total;
     enum price_cs {
@@ -20,6 +22,7 @@ typedef struct article_type { //TODO implement/change: article_type should be a 
 } article_type;
 typedef struct database_information_type{
     int size;
+    unsigned char change_mark; //TODO implement: when edited 1, when saved 0
     enum sorting_mode {
         unsorted,
         price_low_to_high, price_high_to_low,
@@ -34,10 +37,10 @@ typedef struct database_information_type{
     // 0000 0000 0000 0100 = price_total
     // 0000 0000 0000 1000 = price_c
     // 0000 0000 0001 0000 = amount
-    // 0000 0000 0010 0000 = refreshing
-    // 0000 0000 0100 0000 = filling
-    // 0000 0000 1000 0000 = creation
-    // 0000 0001 0000 0000 = last edited
+    // 0000 0000 0010 0000 = creation
+    // 0000 0000 0100 0000 = last editied
+    // 0000 0000 1000 0000 = refreshing
+    // 0000 0001 0000 0000 = filling
 }database_information_type;
 typedef struct database_type{
     database_information_type *file_information;

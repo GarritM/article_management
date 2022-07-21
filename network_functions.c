@@ -2,9 +2,7 @@
 // Created by garri on 30.06.2022.
 //
 
-//TODO implement:
-//          synchronize-download
-//          synchronize-upload
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +30,7 @@
 #endif
 
 #define BUF 1024
+#define PORT_NR 15000 // this port is IANA-registered, maybe not cool
 
 /*evaluates error, returns error message*/
 int exit_error(char *error_message){
@@ -122,11 +121,19 @@ void accept_socket(socket_type *sock, socket_type *new_socket){
 }
 
 /*establish a connection*/
-void connect_socket(socket_type *socket, char *serv_addr, unsigned short port) {
+void connect_socket(socket_type *socket, unsigned short port) {
     struct sockaddr_in server;
     struct hostent *host_info; // host descriptor
     unsigned long addr;
-    memset(&server, 0, sizeof(server));
+    char buffer[13], *serv_addr;
+    memset(buffer, '\0', sizeof(buffer));
+    printf("ip of the server with wich u want to connect (format: xxx.xxx.xxx.xxx): ");
+    fflush(stdout);
+    fgets(buffer,13,stdin);
+    buffer[strcspn(buffer, "\n")] = '\0';
+    serv_addr = (char*) malloc(sizeof(buffer));
+    strcpy(serv_addr,buffer);
+    memset(&server, '\0', sizeof(server));
     if ((addr = inet_addr(serv_addr)) != INADDR_NONE) {
         memcpy((char *) &server.sin_addr, &addr, sizeof(addr));
     }else{
@@ -147,7 +154,7 @@ void connect_socket(socket_type *socket, char *serv_addr, unsigned short port) {
 /*send data via TCP*/
 void TCP_send(socket_type *sock, char *data, size_t size){
 #ifdef _WIN32
-    if(send(*sock, data, size, 0) == SOCKET_ERROR){      //TODO: implement correction code;
+    if(send(*sock, data, size, 0) == SOCKET_ERROR){
 #else
         if(send(*sock, data, size, 0) < 0){
 #endif
@@ -193,7 +200,7 @@ int init_server(database_type *database) {
     atexit(cleanup); //when process is closed, the function cleanup is called
 #endif
     sock1 = create_socket();
-    bind_socket(&sock1, INADDR_ANY, 15000); //TODO: what happens when port 15000 is already used?
+    bind_socket(&sock1, INADDR_ANY, PORT_NR);
     listen_socket(&sock1);
 
     int cont_server = 1;
@@ -230,8 +237,7 @@ int init_client(database_type *database){
     #ifdef _WIN32
     atexit(cleanup); //when process is closed, the function cleanup is called
     #endif
-    connect_socket(&sock_client, "127.0.0.1", 15000); // "127.0.0.1" is the loopback-address TODO: target-address should be choosable
-    //TODO: Port 15000 is IANA registered. Use a Port between 49152-65535 (but also make sure it isn't already used by the host)
+    connect_socket(&sock_client, PORT_NR); // "127.0.0.1" is the loopback-address
 
     /*when connection is established*/
     client_process(&sock_client, buffer, database);
@@ -247,7 +253,6 @@ int init_client(database_type *database){
 
 int server_process(socket_type *sock2,char* buffer, database_type *database){
     while (1) {
-        //TODO: implement way to close server?
         memset(buffer, 0, BUF);
         TCP_receive(sock2, buffer, BUF - 1); // -1 because index_size needed here (but why not implemented directly into the function?
         if (strcmp(buffer, "0") == 0) {
@@ -261,7 +266,7 @@ int server_process(socket_type *sock2,char* buffer, database_type *database){
                 return 1;
             }else if(strcmp(buffer, "2") == 0){
                 printf("client want to download database\n");
-                sent_db_via_tcp(sock2, database, BUF - 1);
+                sent_db_via_tcp(sock2, database);
                 return 2;
             }
         }
@@ -284,7 +289,7 @@ int client_process(socket_type *sock_client, char* buffer, database_type *databa
             TCP_receive(sock_client, data, BUF - 1);//check if server wants to receive a database (1 means yes)
             if (strcmp(data, "1") == 0) {
                 printf("Server is ready to receive the database\n");
-                sent_db_via_tcp(sock_client, database, BUF - 1);
+                sent_db_via_tcp(sock_client, database);
             } else {
             }
         /*request to download database*/
@@ -324,11 +329,17 @@ void server_answer(char* recv_buffer){
 }
 
 
-int sent_db_via_tcp(socket_type *sock, database_type *db, size_t size){
-    if(sizeof(database_information_type)+5 > (size)){ //5 extra bytes needed for "encode_database_info"
-        return -1;//TODO: communicate server to intterupt process
+int sent_db_via_tcp(socket_type *sock, database_type *db){
+    char data[BUF];
+    memset(data, '\0', BUF);
+    /*check if Buffer is big enough*/
+    // 5/7 extra bytes needed for "encode_database_info"/"encode_article_data
+    if(sizeof(database_information_type)+5 >= BUF || sizeof(article_type)+5 >= BUF){
+        printf("The buffer for sending isn't big enough.\n");
+        TCP_send(sock,"\r\n\r\n",BUF-1);
+        return -1;
     }else{
-        char data[BUF];
+
         encode_database_info(data, db->file_information);
         TCP_send(sock, data, strlen(data));
         for(int i = 0; i < db->file_information->size; i++){
@@ -345,13 +356,22 @@ int sent_db_via_tcp(socket_type *sock, database_type *db, size_t size){
                 break;
             }
         }
-        TCP_send(sock, "end", size);
+        TCP_send(sock, "end", BUF-1);
         return 0;
     }
 }
 int recv_db_via_tcp(socket_type *sock, database_type *database, size_t size) {
+    if(database->file_information->change_mark == 1){
+        close_database(database);
+        database_type database = database_creation();
+    }
     char data[BUF];
+    memset(data, '\0', BUF);
     TCP_receive(sock, data, BUF - 1);
+    if(strcmp(data, "\r\n\r\n") == 0){
+        printf("client ist unable to send the database, due to its size\n");
+        return -1;
+    }
     if (decode_file_info(data, database) == 0) {
         database->article_array = create_article_array(database->file_information->size);
         for (int i = 0; i < database->file_information->size; i++) {

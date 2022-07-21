@@ -11,6 +11,7 @@ int main() {
     database_type database = database_creation();
     initialize();
 
+
     int chosen_option = 0;
 //TODO: create 1 extra thread for the server-loop
     while (chosen_option != -1) {
@@ -44,7 +45,7 @@ int main() {
         }else if (chosen_option == 31) {
             database = database_creation();
         }else if (chosen_option == 32) {
-            save_database(database);
+            save_database(&database);
         }else if (chosen_option == 33) {
             load_database(&database);
         }else if (chosen_option == 41) {
@@ -54,9 +55,9 @@ int main() {
         }
     }/*-1 is the return-value of "user_menu()" to close the program*/
     close_database(&database);
-    printf("program closed at %s\n\n"
+    printf("program closed at %s %s\n\n"
            "***********\n"
            "~Good bye!~\n"
-           "***********\n", __TIMESTAMP__); // TODO: check __TIMESTAMP
+           "***********\n", __TIME__, __DATE__);
     return 0;
 }
