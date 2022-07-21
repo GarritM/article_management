@@ -22,27 +22,25 @@ void change_article(database_type *database){
         change_index = atoi(&buffer);}
     entry_article(*database, change_index);
     database->file_information->sorting_mode = unsorted;
+    database->file_information->change_mark = 1;
 }
 void entry_article(struct database_type *database, int article_index) {
-    if(database->article_array[article_index].filled == 0){                             //if process is interrupted it shows database.article_array.filling = -1, while keeping "new" and "edited" distinguished
-        entry_article_filled(-1,&database->article_array[article_index]);
-    }else if(database->article_array[article_index].filled == 1){
-        entry_article_filled(-2,&database->article_array[article_index]);
-    }
+    database->article_array[article_index].filled -= 2; // filled = 0 means, memory was allocated, filled 1 there is actually an entry; idk why i did this in the first place since there are better solutions
     if (entry_article_name(database, article_index) == 0) {
         entry_article_price(&database->article_array[article_index]);
         entry_article_amount(&database->article_array[article_index]);
         entry_article_price_total(&database->article_array[article_index]);
         entry_article_price_category(&database->article_array[article_index]);
-        if(database->article_array[article_index].filled == -1){
+        if(database->article_array[article_index].filled == -2){
             entry_article_time(&database->article_array[article_index]);
-        }else if(database->article_array[article_index].filled == -2){
+        }else if(database->article_array[article_index].filled == -1){
             entry_article_editing_time(&database->article_array[article_index]);
         }
         entry_article_filled(1,&database->article_array[article_index]);
         printf("entry successful\n");
+        fflush(stdout);
     }
-} //TODO: when edited, closing functions should ask for save
+}
 void delete_article(database_type *database){
     int delete_index = -1;
     char buffer[5];
@@ -51,19 +49,20 @@ void delete_article(database_type *database){
         fflush(stdout);
         fgets(buffer, 5, stdin);
         buffer[strcspn(buffer, "\n")] = '\0';
-        delete_index = atoi(&buffer);
+        delete_index = atoi(buffer);
     }
     for(int i=delete_index;i<database->file_information->size;i++){
-        database->article_array[i]=database->article_array[i+1];
+        database->article_array[i]=database->article_array[i+1]; // this is a problem when deleting the last item
     }
     reduce_article_array(database, 1);
     database->file_information->size -= 1;
+    database->file_information->change_mark = 1;
     printf("deletion successful\n");
 }
 
 void entry_article_amount(struct article_type *article) {
     int amount = -1;
-    char buffer[5], dump;
+    char buffer[5];
     while(amount == -1){
         printf("amount: ");
         fflush(stdout);
@@ -79,7 +78,7 @@ int entry_article_name(database_type *database, int article_index) {
     char name[ART_NAME_LENGTH], buffer[100] = "";
     int dump;
     printf("name of the article: ");
-    fflush(stdout);
+    fflush(stdout);//TODO: for some reason the execution in cLion wont output the whitespace until another non whitespace is printed, which causes consistent bug when returning to the menu loop
     if(fgets(buffer, ART_NAME_LENGTH, stdin) != 0){
         buffer[strcspn(buffer, "\n")] = '\0'; //"fgets()" also copys the '\n' (which we dont like) strcspn counts number of char until it hits "/n" or "/0" (latter by default)
         strcpy(name, buffer);
@@ -108,14 +107,13 @@ int entry_article_name(database_type *database, int article_index) {
 void entry_article_price(struct article_type *article) {
     double price;
     char buffer[10];
-    int *dump_i[10];
-    char *dump_c;
+    char* dump_i[10];
     memset(&article->price, 0, sizeof(article->price));
     printf("price: ");
     fflush(stdout);
     fgets(buffer, 10, stdin);
     buffer[strcspn(buffer, "\n")] = '\0';
-    article->price = strtod(buffer, &dump_i);
+    article->price = strtod(buffer, dump_i);
 }
 void entry_article_price_category(struct article_type *article) {
     if (article->filled == 0) {
@@ -156,6 +154,7 @@ void new_entry(struct database_type *database) {
         database->file_information->size += 1;
     }
     database->file_information->sorting_mode = unsorted;
+    database->file_information->change_mark = 1;
 }
 
 void no_space_for_strings(char *some_random_string) {
@@ -201,6 +200,7 @@ void quicksort_price(struct database_type *database, int left_boundary, int righ
     } else {
         quicksort_price_algorithm(database, left_boundary, right_boundary);
         database->file_information->sorting_mode = price_low_to_high;
+        database->file_information->change_mark = 1;
     }
 }
 void quicksort_name_algorithm(struct database_type *database, int left_boundary, int right_boundary){
@@ -237,6 +237,7 @@ void quicksort_name(struct database_type *database, int left_boundary, int right
     }else{
         quicksort_name_algorithm(database, left_boundary, right_boundary);
         database->file_information->sorting_mode = name_a_z;
+        database->file_information->change_mark = 1;
     }
 }
 void quicksort_time_ledited(struct database_type *database, int left_boundary, int right_boundary){
@@ -247,7 +248,9 @@ void quicksort_time_ledited(struct database_type *database, int left_boundary, i
     }else{
         quicksort_time_algorithm_ledited(database, left_boundary, right_boundary);
         database->file_information->sorting_mode = tm_edit_recent_old;
+        database->file_information->change_mark = 1;
     }
+
 }
 void quicksort_time_algorithm_ledited(struct database_type *database, int left_boundary, int right_boundary) {
     int fix_point = (right_boundary + left_boundary) / 2, i = left_boundary, j = right_boundary;
@@ -275,6 +278,7 @@ void quicksort_time_algorithm_ledited(struct database_type *database, int left_b
         quicksort_time_algorithm_ledited(database, i, right_boundary);
     }
 }
+
 void quicksort_time_created(struct database_type *database, int left_boundary, int right_boundary){
     if(database->file_information->sorting_mode == tm_create_recent_old){
         turn_around(database);
@@ -283,6 +287,7 @@ void quicksort_time_created(struct database_type *database, int left_boundary, i
     }else{
         quicksort_time_algorithm_ledited(database, left_boundary, right_boundary);
         database->file_information->sorting_mode = tm_create_recent_old;
+        database->file_information->change_mark = 1;
     }
 }
 void quicksort_time_algorithm_created(struct database_type *database, int left_boundary, int right_boundary){
@@ -334,4 +339,5 @@ void turn_around(database_type *database) {
     }else if(database->file_information->sorting_mode == price_low_to_high){
         database->file_information->sorting_mode = price_high_to_low;
     }
+    database->file_information->change_mark = 1;
 }
