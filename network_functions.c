@@ -161,7 +161,6 @@ void TCP_send(socket_type *sock, char *data, size_t size){
         exit_error("error during sending the data occured");
     }
 }
-
 /*receive data via TCP*/
 void TCP_receive(socket_type *sock, char *data, size_t size){
 #ifdef _WIN32
@@ -203,8 +202,7 @@ int init_server(database_type *database) {
     bind_socket(&sock1, INADDR_ANY, PORT_NR);
     listen_socket(&sock1);
 
-    int cont_server = 1;
-    while (cont_server == 1) {
+    for(;;) {
         accept_socket(&sock1, &sock2);
         server_process(&sock2, buffer, database);
 #ifdef _WIN32
@@ -213,7 +211,9 @@ int init_server(database_type *database) {
         close(sock2);
 #endif
         printf("do u want to answer another client-request (y/n): ");
-        cont_server = ask_for_answer();
+        if(ask_for_answer()==0){
+            break;
+        }
     }
     closesocket(sock1);
 #ifndef _WIN32
