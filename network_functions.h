@@ -13,6 +13,14 @@
 #define socket_type int
 #endif
 
+typedef struct serv_process_object{
+    struct database_type* db_addr;
+    socket_type* ser_sock_addr;
+}serv_process_object;
+
+static serv_process_object serv_process_object_ptr;
+
+
 
 /*evaluates error, returns error message*/
 int exit_error(char *error_message);
@@ -28,8 +36,8 @@ void TCP_send(socket_type *sock, char *data, size_t size);
 void TCP_receive(socket_type *sock, char *data, size_t size);
 void cleanup(void);
 
-void* init_server();
-int server_process();
+void init_server();
+void *server_process();
 int init_client();
 
 #endif //ARTICLE_MANAGEMENT_1_2_NETWORK_FUNCTIONS_H

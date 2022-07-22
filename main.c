@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <pthread.h>
 
 #include "user_interface.h"
 #include "file_functions.h"
@@ -14,11 +13,7 @@ int main() {
     database_type database = database_creation();
     initialize();
 
-    database.file_information->lock = PTHREAD_MUTEX_INITIALIZER;
-    pthread_t server_thread;
 
-    pthread_create(&server_thread, NULL, init_server, (void*)&database);
-    pthread_mutex_lock(&database.file_information->lock);
 
     int chosen_option = 0;
 //TODO: create 1 extra thread for the server-loop
@@ -58,12 +53,12 @@ int main() {
         }else if (chosen_option == 33) {
             load_database(&database);
         }else if (chosen_option == 41) {
-//            init_server(&database);
+            init_server(&database);
         }else if (chosen_option == 42) {
             init_client(&database);
         }
     }/*-1 is the return-value of "user_menu()" to close the program*/
-    pthread_join(server_thread, (void *) &database);
+    cleanup();
     close_database(database);
     printf("program closed at %s %s\n\n"
            "***********\n"

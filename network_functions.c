@@ -115,7 +115,7 @@ void accept_socket(socket_type *sock, socket_type *new_socket){
     // descriptor of connection, stored with two datastructures of the same size and similar structure: sockaddr_in and sock_addr;
     // but sockaddr_in is more comfortable to handle while using ip connections
     int len = sizeof(client);
-    *new_socket = accept(*sock, (struct sockaddr*)&client, &len);
+    *new_socket = accept(&sock, (struct sockaddr*)&client, &len);
 #ifdef _WIN32
     if(*new_socket == INVALID_SOCKET){
 #else
@@ -195,40 +195,29 @@ void server_answer();
 int recv_db_via_tcp();
 
 /*run server*/
-void* init_server(void * database_p) {
-    struct database_type *database = (struct database_type *) database_p;
+void init_server(struct database_type *database) {
+
     #ifdef _WIN32
     init_winsock();
     #endif
 
     socket_type sock1, sock2;
-    char *buffer = (char *) malloc(BUF);
+
 #ifdef _WIN32
     atexit(cleanup); //when process is closed, the function cleanup is called
 #endif
     sock1 = create_socket();
     bind_socket(&sock1, INADDR_ANY, PORT_NR);
     listen_socket(&sock1);
-    pthread_mutex_unlock(&database->file_information->lock);
-    for(int i = 0; i < 1; i++) {
-        accept_socket(&sock1, &sock2);
-        server_process(&sock2, buffer, database);
-#ifdef _WIN32
-        closesocket(sock2);
-#else
-        close(sock2);
-#endif
-//        printf("do u want to answer another client-request (y/n): ");
-//        if(ask_for_answer()==0){
-//            break;
-//        }
-    }
-    closesocket(sock1);
-#ifndef _WIN32
-    close(sock1);
-#endif
-    database_p = database;
-    pthread_exit(database_p);
+
+    pthread_t server_thread;
+
+    serv_process_object serv_process_object_ptr; //TODO fix: serv_process_object_ptr is a local variable an no longer available when the mainprocess leaves server_init
+    serv_process_object_ptr.ser_sock_addr = &sock1;
+    serv_process_object_ptr.db_addr = database;
+
+    pthread_create(&server_thread, NULL, server_process, &serv_process_object_ptr);
+
 }
 
 /*initialize client*/
@@ -260,25 +249,46 @@ int init_client(database_type *database){
     return 0;
 }
 
-int server_process(socket_type *sock2,char* buffer, database_type *database){
-    while (1) {
-        memset(buffer, 0, BUF);
-        TCP_receive(sock2, buffer, BUF - 1); // -1 because index_size needed here (but why not implemented directly into the function?
-        if (strcmp(buffer, "0") == 0) {
-            printf("client is disconnecting\n");
-            break;
-        } else {
-            if(strcmp(buffer, "1") == 0){
-                printf("client want to upload db\n");
-                TCP_send(sock2, "1", BUF-1);
-                recv_db_via_tcp(sock2, database, BUF-1);
-                return 1;
-            }else if(strcmp(buffer, "2") == 0){
-                printf("client want to download database\n");
-                sent_db_via_tcp(sock2, database);
-                return 2;
+void *server_process(void *serv_process_object_ptr) {
+    for(;;) {
+        struct serv_process_object *serv_process_object = (struct serv_process_object*) &serv_process_object_ptr;
+        char buffer[BUF];
+        socket_type sock2;
+        accept_socket(serv_process_object->ser_sock_addr, &sock2);
+        while (1) {
+            memset(buffer, 0, BUF);
+            TCP_receive(&sock2, buffer, BUF -
+                                        1); // -1 because index_size needed here (but why not implemented directly into the function?
+            if (strcmp(buffer, "0") == 0) {
+                printf("client is disconnecting\n");
+                break;
+            } else {
+                if (strcmp(buffer, "1") == 0) {
+                    printf("client want to upload db\n");
+                    TCP_send(&sock2, "1", BUF - 1);
+                    recv_db_via_tcp(sock2, serv_process_object->db_addr, BUF - 1);
+                    pthread_exit(serv_process_object_ptr);
+                } else if (strcmp(buffer, "2") == 0) {
+                    printf("client want to download database\n");
+                    sent_db_via_tcp(sock2, serv_process_object->db_addr);
+                    pthread_exit(serv_process_object_ptr);
+                }
             }
         }
+#ifdef _WIN32
+        closesocket(sock2);
+#else
+        close(sock2);
+#endif
+//        printf("do u want to answer another client-request (y/n): ");
+//        if(ask_for_answer()==0){
+//            break;
+//        }
+        closesocket(*serv_process_object->ser_sock_addr);
+#ifndef _WIN32
+        close(*serv_process_object.ser_sock_addr);
+#endif
+        pthread_exit(serv_process_object_ptr);
     }
 }
 int client_process(socket_type *sock_client, char* buffer, database_type *database){
