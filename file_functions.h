@@ -5,13 +5,13 @@
 #ifndef UNTITLED3_FILE_FUNCTIONS_H
 #define UNTITLED3_FILE_FUNCTIONS_H
 #include <time.h>
+#include <pthread.h>
 
 
 #define ART_NAME_LENGTH 100
 
 typedef struct article_type { //TODO implement/change: there could be several list pointers, for different ways to sort
                               // the db (but it requires a lot of work), but it would be cool
-
     char name[100];
     double price, price_total;
     enum price_cs {
@@ -41,6 +41,7 @@ typedef struct database_information_type{
     // 0000 0000 0100 0000 = last editied
     // 0000 0000 1000 0000 = refreshing
     // 0000 0001 0000 0000 = filling
+    pthread_mutex_t lock;
 }database_information_type;
 typedef struct database_type{
     database_information_type *file_information;

@@ -19,7 +19,7 @@ void change_article(database_type *database){
         fflush(stdout);
         fgets(buffer, 5, stdin);
         buffer[strcspn(buffer, "\n")] = '\0';
-        change_index = atoi(&buffer);}
+        change_index = atoi(buffer);}
     entry_article(*database, change_index);
     database->file_information->sorting_mode = unsorted;
     database->file_information->change_mark = 1;
@@ -68,7 +68,7 @@ void entry_article_amount(struct article_type *article) {
         fflush(stdout);
         fgets(buffer, 5, stdin);
         buffer[strcspn(buffer, "\n")] = '\0';
-        amount = atoi(&buffer);
+        amount = atoi(buffer);
     article->amount = amount;}
 }
 void entry_article_filled(int mode_of_filling, struct article_type *article) {

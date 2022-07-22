@@ -181,8 +181,7 @@ void get_article_by_name(struct database_type *database) {
     printf("Type in the name of the article you are searching: ");
     fflush(stdout);
     if (fgets(buffer, ART_NAME_LENGTH, stdin) != 0) {
-        buffer[strcspn(buffer,
-                       "\n")] = '\0'; //"fgets()" also copys the '\n' (which we dont like) strcspn counts number of char until it hits "/n" or "/0" (latter by default)
+        buffer[strcspn(buffer, "\n")] = '\0'; //"fgets()" also copys the '\n' (which we dont like) strcspn counts number of char until it hits "/n" or "/0" (latter by default)
         strcpy(searched_article, buffer);
     }
     int found_result = binary_search_article_in_range(database, searched_article, 0,

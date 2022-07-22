@@ -10,6 +10,9 @@
 #include <errno.h>
 #include "user_interface.h"
 #include "file_functions.h"
+#include "network_functions.h"
+
+#include <pthread.h>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -31,6 +34,7 @@
 
 #define BUF 1024
 #define PORT_NR 15000 // this port is IANA-registered, maybe not cool
+
 
 /*evaluates error, returns error message*/
 int exit_error(char *error_message){
@@ -69,6 +73,7 @@ socket_type create_socket(){
         exit_error("socket creation failed");
     }else{
         printf("socket is created\n");
+        fflush(stdout);
     }
 #ifdef __UNIX
     const int y = 1;
@@ -92,6 +97,7 @@ void bind_socket(socket_type *sock, unsigned long address, unsigned short port){
         exit_error("unable to bind socket");
     }else{
         printf("socket is bind\n");
+        fflush(stdout);
     }
 }
 /*set sock to listening*/
@@ -100,6 +106,7 @@ void listen_socket(socket_type *sock){
         exit_error("unable to set sock to listening");
     }else{
         printf("sock is listening\n");
+        fflush(stdout);
     }
 }
 /*accept connection-requests*/
@@ -182,13 +189,14 @@ void TCP_receive(socket_type *sock, char *data, size_t size){
 }
 
 int client_process();
-int server_process();
+
 int sent_db_via_tcp();
 void server_answer();
 int recv_db_via_tcp();
 
 /*run server*/
-int init_server(database_type *database) {
+void* init_server(void * database_p) {
+    struct database_type *database = (struct database_type *) database_p;
     #ifdef _WIN32
     init_winsock();
     #endif
@@ -201,8 +209,8 @@ int init_server(database_type *database) {
     sock1 = create_socket();
     bind_socket(&sock1, INADDR_ANY, PORT_NR);
     listen_socket(&sock1);
-
-    for(;;) {
+    pthread_mutex_unlock(&database->file_information->lock);
+    for(int i = 0; i < 1; i++) {
         accept_socket(&sock1, &sock2);
         server_process(&sock2, buffer, database);
 #ifdef _WIN32
@@ -210,16 +218,17 @@ int init_server(database_type *database) {
 #else
         close(sock2);
 #endif
-        printf("do u want to answer another client-request (y/n): ");
-        if(ask_for_answer()==0){
-            break;
-        }
+//        printf("do u want to answer another client-request (y/n): ");
+//        if(ask_for_answer()==0){
+//            break;
+//        }
     }
     closesocket(sock1);
 #ifndef _WIN32
     close(sock1);
 #endif
-    return 0;
+    database_p = database;
+    pthread_exit(database_p);
 }
 
 /*initialize client*/
