@@ -21,7 +21,7 @@ void initialize() {
            "you opened the program:\n"
            "\"article_management\"\n"
            "\n"
-           "Version: 1.2\n"
+           "Version: 1.3\n"
            "by Garrit Morrin\n"
            "started at: %s  %s\n"
            "currently running on: ", __TIME__, __DATE__);
